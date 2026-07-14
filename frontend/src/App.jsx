@@ -1,12 +1,10 @@
-
-
 import { Routes, Route } from "react-router-dom";
+import NotFound from "./pages/NotFound";
 
 import PublicLayout from "./layouts/PublicLayout";
 import DashboardLayout from "./layouts/DashboardLayout";
 
 import ProtectedRoute from "./components/common/ProtectedRoute";
-import AdminRoute from "./components/common/AdminRoute";
 
 import Landing from "./pages/Landing";
 
@@ -21,67 +19,81 @@ import Income from "./pages/Income";
 import Budgets from "./pages/Budgets";
 import Savings from "./pages/Savings";
 import Categories from "./pages/Categories";
+import Goals from "./pages/Goals";
+import AIAdvisor from "./pages/AIAdvisor";
+import Settings from "./pages/Settings";
 import Profile from "./pages/Profile";
-import Admin from "./pages/Admin";
-import NotFound from "./pages/NotFound";
+import Insights from "./pages/Insights";
+import ModalContainer from "./components/common/ModalContainer";
+import Logout from "./pages/Logout";
 
 export default function App() {
 
   return (
 
-    <Routes>
+    <>
 
-      {/* Public */}
+      <Routes>
 
-      <Route element={<PublicLayout />}>
+        {/* Public */}
 
-        <Route path="/" element={<Landing />} />
+        <Route element={<PublicLayout />}>
 
-        <Route path="/login" element={<Login />} />
+          <Route path="/" element={<Landing />} />
 
-        <Route path="/register" element={<Register />} />
+          <Route path="/login" element={<Login />} />
 
-        <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/register" element={<Register />} />
 
-        <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
 
-      </Route>
+          <Route path="/reset-password" element={<ResetPassword />} />
 
-      {/* Protected */}
+          <Route path="/logout" element={<Logout />} />
 
-      <Route element={<ProtectedRoute />}>
+        </Route>
 
-        <Route element={<DashboardLayout />}>
+        {/* Protected */}
 
-          <Route path="/dashboard" element={<Dashboard />} />
+        <Route element={<ProtectedRoute />}>
 
-          <Route path="/expenses" element={<Expenses />} />
+          <Route element={<DashboardLayout />}>
 
-          <Route path="/income" element={<Income />} />
+            <Route path="/dashboard" element={<Dashboard />} />
 
-          <Route path="/budgets" element={<Budgets />} />
+            <Route path="/expenses" element={<Expenses />} />
 
-          <Route path="/savings" element={<Savings />} />
+            <Route path="/income" element={<Income />} />
 
-          <Route path="/categories" element={<Categories />} />
+            <Route path="/budgets" element={<Budgets />} />
 
-          <Route path="/profile" element={<Profile />} />
+            <Route path="/insights" element={<Insights />} />
 
-          <Route
-            element={<AdminRoute />}
-          >
+            <Route path="/savings" element={<Savings />} />
 
-            <Route path="/admin" element={<Admin />} />
+            <Route path="/categories" element={<Categories />} />
+
+            <Route path="/goals" element={<Goals />} />
+
+            <Route path="/ai-advisor" element={<AIAdvisor />} />
+
+            <Route path="/settings" element={<Settings />} />
+
+            <Route path="/profile" element={<Profile />} />
 
           </Route>
 
         </Route>
 
-      </Route>
+        <Route path="*" element={<NotFound />} />
 
-      <Route path="*" element={<NotFound />} />
+      </Routes>
 
-    </Routes>
+      {/* Global Modals */}
+
+      <ModalContainer />
+
+    </>
 
   );
 

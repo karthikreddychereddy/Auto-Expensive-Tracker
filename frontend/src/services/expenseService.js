@@ -2,16 +2,54 @@ import api from './api.js';
 
 export const expenseService = {
   list: (params = {}) => api.get('/expenses', { params }).then(r => r.data),
-  create: (payload) => api.post('/expenses', payload).then(r => r.data),
-  update: (id, payload) => api.put(`/expenses/${id}`, payload).then(r => r.data),
+  create: (payload) =>
+    api.post("/expenses", {
+      amount: payload.amount,
+      category: payload.category,
+      paymentMode: payload.paymentMode,
+      description: payload.description,
+      merchant: payload.merchant,
+      expenseDate: payload.expenseDate,
+      source: payload.source,
+    }).then((r) => r.data),
+  update: (id, payload) =>
+    api.put(`/expenses/${id}`, {
+      amount: payload.amount,
+      category: payload.category,
+      paymentMode: payload.paymentMode,
+      description: payload.description,
+      merchant: payload.merchant,
+      expenseDate: payload.expenseDate,
+      source: payload.source,
+    }).then((r) => r.data),
   remove: (id) => api.delete(`/expenses/${id}`).then(r => r.data),
-  stats: () => api.get('/expenses/stats').then(r => r.data),
+  stats: () => api.get('/dashboard/summary').then(r => r.data),
 };
 
 export const incomeService = {
-  list: () => api.get('/income').then(r => r.data),
-  create: (payload) => api.post('/income', payload).then(r => r.data),
-  remove: (id) => api.delete(`/income/${id}`).then(r => r.data),
+  list: () =>
+    api.get("/income").then((r) => r.data),
+
+  create: (payload) =>
+    api.post("/income", {
+      amount: payload.amount,
+      category: payload.category,
+      source: payload.source,
+      description: payload.description,
+      incomeDate: payload.incomeDate,
+    }).then((r) => r.data),
+
+  update: (id, payload) =>
+    api.put(`/income/${id}`, {
+      amount: payload.amount,
+      category: payload.category,
+      source: payload.source,
+      description: payload.description,
+      incomeDate: payload.incomeDate,
+    }).then((r) => r.data),
+
+  remove: (id) =>
+    api.delete(`/income/${id}`).then((r) => r.data),
 };
 
 export const budgetService = {

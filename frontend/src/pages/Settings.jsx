@@ -1,8 +1,37 @@
+import SettingsHeader from "../components/settings/SettingsHeader";
+import AppearanceSettings from "../components/settings/AppearanceSettings";
+import NotificationSettings from "../components/settings/NotificationSettings";
+import AIPreferences from "../components/settings/AIPreferences";
+import BudgetPreferences from "../components/settings/BudgetPreferences";
+import CurrencySettings from "../components/settings/CurrencySettings";
+import SecuritySettings from "../components/settings/SecuritySettings";
+
 export default function Settings() {
+
   return (
-    <div className="p-8">
-      <h1 className="text-3xl font-bold">Settings</h1>
-      <p className="text-gray-500 mt-2">Coming Soon...</p>
+
+    <div className="space-y-8">
+
+      <SettingsHeader />
+
+      <div className="grid xl:grid-cols-2 gap-8">
+
+        <AppearanceSettings />
+
+        <NotificationSettings />
+
+        <AIPreferences />
+
+        <BudgetPreferences />
+
+        <CurrencySettings />
+
+        <SecuritySettings />
+
+      </div>
+
     </div>
+
   );
+
 }

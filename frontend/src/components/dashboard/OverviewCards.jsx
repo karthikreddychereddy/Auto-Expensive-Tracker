@@ -1,133 +1,155 @@
 import {
   FaWallet,
-  FaArrowUp,
-  FaArrowDown,
-  FaPiggyBank,
+  FaArrowTrendUp,
+  FaArrowTrendDown,
   FaBullseye,
-  FaChartLine,
-} from "react-icons/fa";
+  FaPiggyBank,
+  FaMoneyBillWave,
+} from "react-icons/fa6";
+
+import { useMemo } from "react";
+
+import { useExpenses } from "../../context/ExpenseContext";
+import { useSavings } from "../../context/SavingsContext";
+import { useGoal } from "../../context/GoalContext";
 
 import { formatCurrency } from "../../utils/format";
 
-export default function OverviewCards({ stats }) {
+export default function OverviewCards({ summary }) {
 
-  const totals = stats?.totals || {
-    income: 0,
-    expense: 0,
-    savings: 0,
-    balance: 0,
-    budget: 0,
-    monthlyExpense: 0,
-  };
+  console.log("Overview Summary:", summary);
+
+  const { expenses } = useExpenses();
+
+  const { totalSavings } = useSavings();
+
+  const { totalGoals } = useGoal();
+
+  const today = new Date().toISOString().slice(0, 10);
+
+  const todayExpense = useMemo(() => {
+
+    return expenses
+      .filter(
+        (item) =>
+          item.transactionType !== "Income" &&
+          item.date === today
+      )
+      .reduce(
+        (sum, item) => sum + Number(item.amount),
+        0
+      );
+
+  }, [expenses]);
 
   const cards = [
+
     {
-      title: "Total Balance",
-      value: totals.balance || (totals.income - totals.expense),
-      icon: <FaWallet />,
-      bg: "bg-green-100",
-      iconBg: "bg-green-600",
-      text: "text-green-700",
-      change: "+8.2%",
+      title: "Today's Spending",
+      value: todayExpense,
+      subtitle: "Today",
+      icon: <FaMoneyBillWave />,
+      color: "bg-red-500",
+      bg: "bg-red-50",
     },
+
     {
-      title: "Income",
-      value: totals.income,
-      icon: <FaArrowUp />,
-      bg: "bg-blue-100",
-      iconBg: "bg-blue-600",
-      text: "text-blue-700",
-      change: "+12.4%",
+      title: "Total Income",
+      value: summary?.totalIncome || 0,
+      subtitle: `${summary?.incomeCount || 0} Income Records`,
+      icon: <FaArrowTrendUp />,
+      color: "bg-green-500",
+      bg: "bg-green-50",
     },
+
     {
-      title: "Expenses",
-      value: totals.expense,
-      icon: <FaArrowDown />,
-      bg: "bg-red-100",
-      iconBg: "bg-red-600",
-      text: "text-red-700",
-      change: "-5.8%",
+      title: "Total Expense",
+      value: summary?.totalExpense || 0,
+      subtitle: `${summary?.expenseCount || 0} Expense Records`,
+      icon: <FaArrowTrendDown />,
+      color: "bg-orange-500",
+      bg: "bg-orange-50",
     },
+
     {
       title: "Savings",
-      value: totals.savings,
+      value: totalSavings,
+      subtitle: "Saved",
       icon: <FaPiggyBank />,
-      bg: "bg-yellow-100",
-      iconBg: "bg-yellow-600",
-      text: "text-yellow-700",
-      change: "+18%",
+      color: "bg-purple-500",
+      bg: "bg-purple-50",
     },
+
     {
-      title: "Budget",
-      value: totals.budget || 50000,
+      title: "Goals",
+      value: totalGoals,
+      subtitle: "Active Goals",
       icon: <FaBullseye />,
-      bg: "bg-purple-100",
-      iconBg: "bg-purple-600",
-      text: "text-purple-700",
-      change: "72%",
+      color: "bg-blue-500",
+      bg: "bg-blue-50",
     },
+
     {
-      title: "This Month",
-      value: totals.monthlyExpense || totals.expense,
-      icon: <FaChartLine />,
-      bg: "bg-cyan-100",
-      iconBg: "bg-cyan-600",
-      text: "text-cyan-700",
-      change: "+4%",
+      title: "Balance",
+      value: summary?.currentBalance || 0,
+      subtitle: "Available",
+      icon: <FaWallet />,
+      color: "bg-emerald-500",
+      bg: "bg-emerald-50",
     },
+
   ];
 
   return (
-    <div className="grid xl:grid-cols-6 lg:grid-cols-3 md:grid-cols-2 gap-6">
 
-      {cards.map((card, index) => (
+    <div className="grid xl:grid-cols-3 lg:grid-cols-2 gap-6">
+
+      {cards.map((card) => (
 
         <div
-          key={index}
-          className="bg-white rounded-3xl p-6 shadow-sm hover:shadow-xl transition duration-300 border border-gray-100"
+          key={card.title}
+          className={`${card.bg}
+          rounded-3xl
+          border
+          border-gray-100
+          p-6
+          hover:shadow-xl
+          transition-all`}
         >
 
-          <div className="flex justify-between items-center">
+          <div className="flex justify-between">
 
             <div>
 
-              <p className="text-gray-500 text-sm">
+              <p className="text-sm text-gray-500">
 
                 {card.title}
 
               </p>
 
-              <h2 className={`text-3xl font-bold mt-2 ${card.text}`}>
+              <h2 className="text-3xl font-bold mt-3 text-slate-800">
 
-                {formatCurrency(card.value)}
+                {typeof card.value === "number"
+                  ? formatCurrency(card.value)
+                  : card.value}
 
               </h2>
+
+              <p className="text-sm text-gray-500 mt-3">
+
+                {card.subtitle}
+
+              </p>
 
             </div>
 
             <div
-              className={`${card.iconBg} text-white w-14 h-14 rounded-2xl flex items-center justify-center text-2xl`}
+              className={`${card.color} w-14 h-14 rounded-2xl flex justify-center items-center text-white text-xl`}
             >
+
               {card.icon}
+
             </div>
-
-          </div>
-
-          <div className="mt-6 flex justify-between items-center">
-
-            <span
-              className={`text-sm font-semibold ${card.text}`}
-            >
-
-              {card.change}
-
-            </span>
-
-            <span className="text-xs text-gray-400">
-
-              vs last month
-
-            </span>
 
           </div>
 
@@ -136,5 +158,7 @@ export default function OverviewCards({ stats }) {
       ))}
 
     </div>
+
   );
+
 }

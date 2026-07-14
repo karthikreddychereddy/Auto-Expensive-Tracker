@@ -1,61 +1,86 @@
 import {
-  FaPlusCircle,
-  FaDownload
+  FaShieldAlt,
+  FaCalendarDay,
 } from "react-icons/fa";
 
 export default function DashboardHeader({ user }) {
 
+  const today = new Date().toLocaleDateString("en-IN", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+
   return (
 
-    <div className="flex justify-between items-center">
+    <div className="bg-white dark:bg-slate-800 rounded-3xl shadow-sm border border-gray-100 dark:border-slate-700 p-8 transition-colors duration-300">
 
-      <div>
+      <div className="flex flex-col lg:flex-row justify-between lg:items-center gap-8">
 
-        <h1 className="text-4xl font-bold">
+        {/* Left */}
 
-          Welcome back,
+        <div>
 
-          <span className="text-[#0B6B57]">
+          <p className="text-gray-500 dark:text-gray-400 text-sm mb-2 flex items-center gap-2">
 
-            {" "}
+            <FaCalendarDay />
 
-            {user?.name || "Karthik"}
+            {today}
 
-          </span>
+          </p>
 
-          👋
+          <h1 className="text-4xl font-bold text-slate-800 dark:text-white leading-tight">
 
-        </h1>
+            Welcome back,
 
-        <p className="text-gray-500 mt-2">
+            <span className="text-[#0B6B57]">
 
-          Here's your financial overview for today.
+              {" "}
 
-        </p>
+              {user?.name || "Karthik"}
 
-      </div>
+            </span>
 
-      <div className="flex gap-4">
+            👋
 
-        <button
-          className="flex items-center gap-2 bg-white border px-5 py-3 rounded-xl hover:bg-gray-100"
-        >
+          </h1>
 
-          <FaDownload />
+          <p className="text-gray-500 dark:text-gray-400 mt-3 text-lg">
 
-          Export
+            Here's your financial overview for today.
 
-        </button>
+          </p>
 
-        <button
-          className="flex items-center gap-2 bg-[#0B6B57] text-white px-5 py-3 rounded-xl hover:bg-[#095544]"
-        >
+        </div>
 
-          <FaPlusCircle />
+        {/* Right */}
 
-          Add Expense
+        <div className="flex flex-col gap-4">
 
-        </button>
+          <div className="flex items-center gap-3 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 px-5 py-3 rounded-2xl transition-colors duration-300">
+
+            <FaShieldAlt className="text-xl" />
+
+            <div>
+
+              <p className="font-semibold">
+
+                Financial Health
+
+              </p>
+
+              <p className="text-sm">
+
+                Good • Keep Saving 🚀
+
+              </p>
+
+            </div>
+
+          </div>
+
+        </div>
 
       </div>
 

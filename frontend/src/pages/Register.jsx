@@ -21,7 +21,8 @@ export default function Register() {
   const navigate = useNavigate();
 
   const [form, setForm] = useState({
-    name: "",
+    firstName: "",
+    lastName: "",
     email: "",
     password: "",
     confirmPassword: ""
@@ -45,10 +46,17 @@ export default function Register() {
 
     try {
 
+      const names = form.name.trim().split(" ");
+
+      const firstName = names[0];
+
+      const lastName = names.slice(1).join(" ") || "";
+
       await register({
-        name: form.name,
+        firstName,
+        lastName,
         email: form.email,
-        password: form.password
+        password: form.password,
       });
 
       toast.success("Account Created Successfully");

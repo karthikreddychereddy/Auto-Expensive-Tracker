@@ -4,16 +4,18 @@ import Sidebar from "../components/navigation/Sidebar";
 import TopNavbar from "../components/navigation/TopNavbar";
 
 export default function DashboardLayout() {
+
   return (
-    <div className="flex bg-[#F5F7FB] min-h-screen">
+
+    <div className="h-screen bg-slate-100 dark:bg-slate-900 overflow-hidden transition-colors duration-300">
 
       <Sidebar />
 
-      <div className="flex-1 flex flex-col">
+      <div className="ml-72 h-screen flex flex-col">
 
         <TopNavbar />
 
-        <main className="flex-1 p-8 overflow-y-auto">
+        <main className="flex-1 overflow-y-auto p-8 text-slate-800 dark:text-white transition-colors duration-300">
 
           <Outlet />
 
@@ -22,5 +24,7 @@ export default function DashboardLayout() {
       </div>
 
     </div>
+
   );
+
 }

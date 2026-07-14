@@ -1,71 +1,101 @@
-
 import { createContext, useContext, useState } from "react";
+import toast from "react-hot-toast";
+import api from "../services/api";
 
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState({
-    id: 1,
-    name: "Karthik Reddy",
-    email: "karthikreddychereddy@gmail.com",
-    role: "USER",
+
+  const [user, setUser] = useState(() => {
+
+    const stored = localStorage.getItem("pt_user");
+
+    return stored ? JSON.parse(stored) : null;
+
   });
 
   const [loading] = useState(false);
 
   const login = async (email, password) => {
-    // Temporary login (no backend)
+
+    const response = await api.post("/auth/login", {
+      email,
+      password,
+    });
+
+    const { token } = response.data;
+
+    localStorage.setItem("pt_token", token);
+
     const loggedInUser = {
-      id: 1,
-      name: "Karthik",
-      email: email,
-      role: "ADMIN",
+      email
     };
 
-    localStorage.setItem("pt_token", "dummy_token");
-    localStorage.setItem("pt_user", JSON.stringify(loggedInUser));
+    localStorage.setItem(
+      "pt_user",
+      JSON.stringify(loggedInUser)
+    );
 
     setUser(loggedInUser);
 
-    return loggedInUser;
+    return response.data;
+
   };
 
   const register = async (payload) => {
-    // Temporary registration
-    const newUser = {
-      id: 2,
-      name: payload.name || "New User",
+
+    const response = await api.post("/auth/register", payload);
+
+    const { token } = response.data;
+
+    localStorage.setItem("pt_token", token);
+
+    const registeredUser = {
+      firstName: payload.firstName,
+      lastName: payload.lastName,
       email: payload.email,
-      role: "USER",
     };
 
-    localStorage.setItem("pt_token", "dummy_token");
-    localStorage.setItem("pt_user", JSON.stringify(newUser));
+    localStorage.setItem(
+      "pt_user",
+      JSON.stringify(registeredUser)
+    );
 
-    setUser(newUser);
+    setUser(registeredUser);
 
-    return newUser;
+    return response.data;
+
   };
 
   const logout = () => {
+
     localStorage.removeItem("pt_token");
     localStorage.removeItem("pt_user");
+
     setUser(null);
+
+    toast.success("Logged out successfully");
+
   };
 
   return (
+
     <AuthContext.Provider
       value={{
         user,
         loading,
         login,
         register,
-        logout,
+        logout
       }}
     >
+
       {children}
+
     </AuthContext.Provider>
+
   );
+
 }
 
 export const useAuth = () => useContext(AuthContext);

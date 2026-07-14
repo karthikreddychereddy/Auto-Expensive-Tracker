@@ -1,4 +1,5 @@
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
 
 import {
   MdDashboard,
@@ -56,34 +57,45 @@ const menuItems = [
     icon: <FaBullseye size={20} />,
   },
   {
-    name: "Reports",
-    path: "/reports",
+    name: "Insights",
+    path: "/insights",
     icon: <MdAnalytics size={22} />,
   },
   {
-    name: "AI Insights",
-    path: "/ai-insights",
+    name: "AI Advisor",
+    path: "/ai-advisor",
     icon: <FaRobot size={20} />,
   },
 ];
 
 export default function Sidebar() {
+
+  const { logout } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+
+    logout();
+
+    navigate("/login");
+
+  };
+
   return (
-    <aside className="w-72 h-screen bg-white border-r border-gray-200 flex flex-col">
 
-      {/* Logo */}
+    <aside className="fixed left-0 top-0 w-72 h-screen bg-white dark:bg-slate-900 border-r border-gray-200 dark:border-slate-700 flex flex-col z-40 transition-colors duration-300">
 
-      <div className="h-20 flex items-center px-8 border-b">
+      <div className="h-20 flex items-center px-8 border-b border-gray-200 dark:border-slate-700 flex-shrink-0">
 
         <h1 className="text-3xl font-bold text-[#0B6B57]">
+
           PaisaTrack
+
         </h1>
 
       </div>
 
-      {/* Main Navigation */}
-
-      <div className="flex-1 py-6 px-4 space-y-2">
+      <div className="flex-1 overflow-y-auto py-6 px-4 space-y-2">
 
         {menuItems.map((item) => (
 
@@ -95,7 +107,7 @@ export default function Sidebar() {
               ${
                 isActive
                   ? "bg-[#0B6B57] text-white shadow-lg"
-                  : "text-gray-600 hover:bg-[#F3F4F6] hover:text-[#0B6B57]"
+                  : "text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-800 hover:text-[#0B6B57]"
               }`
             }
           >
@@ -103,7 +115,9 @@ export default function Sidebar() {
             {item.icon}
 
             <span className="font-medium">
+
               {item.name}
+
             </span>
 
           </NavLink>
@@ -112,9 +126,7 @@ export default function Sidebar() {
 
       </div>
 
-      {/* Bottom Navigation */}
-
-      <div className="border-t p-4 space-y-2">
+      <div className="border-t border-gray-200 dark:border-slate-700 p-4 space-y-2 flex-shrink-0">
 
         <NavLink
           to="/profile"
@@ -123,7 +135,7 @@ export default function Sidebar() {
             ${
               isActive
                 ? "bg-[#0B6B57] text-white shadow-lg"
-                : "text-gray-600 hover:bg-[#F3F4F6] hover:text-[#0B6B57]"
+                : "text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-800 hover:text-[#0B6B57]"
             }`
           }
         >
@@ -131,7 +143,9 @@ export default function Sidebar() {
           <FaUserCircle size={20} />
 
           <span className="font-medium">
+
             Profile
+
           </span>
 
         </NavLink>
@@ -143,7 +157,7 @@ export default function Sidebar() {
             ${
               isActive
                 ? "bg-[#0B6B57] text-white shadow-lg"
-                : "text-gray-600 hover:bg-[#F3F4F6] hover:text-[#0B6B57]"
+                : "text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-800 hover:text-[#0B6B57]"
             }`
           }
         >
@@ -151,19 +165,24 @@ export default function Sidebar() {
           <FaCog size={20} />
 
           <span className="font-medium">
+
             Settings
+
           </span>
 
         </NavLink>
 
         <button
-          className="w-full flex items-center gap-4 px-5 py-3 rounded-xl text-red-500 hover:bg-red-50 transition-all duration-300"
+          onClick={handleLogout}
+          className="w-full flex items-center gap-4 px-5 py-3 rounded-xl text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all duration-300"
         >
 
           <FiLogOut size={20} />
 
           <span className="font-medium">
+
             Logout
+
           </span>
 
         </button>
@@ -171,5 +190,7 @@ export default function Sidebar() {
       </div>
 
     </aside>
+
   );
+
 }

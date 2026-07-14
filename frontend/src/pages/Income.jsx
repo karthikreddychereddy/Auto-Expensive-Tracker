@@ -1,45 +1,84 @@
-import { useEffect, useState } from 'react';
-import { incomeService } from '../services/expenseService.js';
-import { formatCurrency, formatDate } from '../utils/format.js';
-import toast from 'react-hot-toast';
+import IncomeHeader from "../components/income/IncomeHeader";
+import IncomeSummaryCards from "../components/income/IncomeSummaryCards";
+import IncomeTrendChart from "../components/income/IncomeTrendChart";
+import IncomeSourceChart from "../components/income/IncomeSourceChart";
+import IncomeHistory from "../components/income/IncomeHistory";
+import RecurringIncome from "../components/income/RecurringIncome";
+import IncomeGoalCard from "../components/income/IncomeGoalCard";
+import IncomeTips from "../components/income/IncomeTips";
+import IncomeToolbar from "../components/income/IncomeToolbar";
+
+import { useIncome } from "../context/IncomeContext";
+import { useMonth } from "../context/MonthContext";
+
+
 
 export default function Income() {
-  const [items, setItems] = useState([]);
-  const [form, setForm] = useState({ source: '', amount: '', date: new Date().toISOString().slice(0,10) });
 
-  const load = () => incomeService.list().then(setItems).catch(() => setItems([]));
-  useEffect(() => { load(); }, []);
+  const { selectedMonth } = useMonth();
 
-  const submit = async (e) => {
-    e.preventDefault();
-    try {
-      await incomeService.create({ ...form, amount: Number(form.amount) });
-      toast.success('Income added'); setForm({ source: '', amount: '', date: new Date().toISOString().slice(0,10) }); load();
-    } catch { toast.error('Failed'); }
-  };
+  const {
+
+    search,
+    setSearch,
+
+    sourceFilter,
+    setSourceFilter,
+
+    dateFilter,
+    setDateFilter,
+
+    sortBy,
+    setSortBy,
+
+  } = useIncome();
 
   return (
-    <div className="space-y-4">
-      <h1 className="text-2xl font-bold">Income</h1>
-      <form onSubmit={submit} className="bg-white border rounded-xl p-4 grid sm:grid-cols-4 gap-2">
-        <input className="border rounded-md px-3 py-2 text-sm" placeholder="Source"
-          value={form.source} onChange={e => setForm({ ...form, source: e.target.value })} required />
-        <input className="border rounded-md px-3 py-2 text-sm" type="number" placeholder="Amount"
-          value={form.amount} onChange={e => setForm({ ...form, amount: e.target.value })} required />
-        <input className="border rounded-md px-3 py-2 text-sm" type="date"
-          value={form.date} onChange={e => setForm({ ...form, date: e.target.value })} />
-        <button className="bg-brand-600 hover:bg-brand-700 text-white rounded-md text-sm">Add</button>
-      </form>
 
-      <div className="bg-white border rounded-xl divide-y">
-        {items.map(i => (
-          <div key={i.id} className="p-3 flex justify-between text-sm">
-            <span>{i.source} · <span className="text-slate-500">{formatDate(i.date)}</span></span>
-            <span className="font-semibold text-emerald-600">{formatCurrency(i.amount)}</span>
-          </div>
-        ))}
-        {items.length === 0 && <p className="p-4 text-sm text-slate-500">No income recorded.</p>}
+    <div className="space-y-8">
+
+      <IncomeHeader />
+
+      <IncomeSummaryCards />
+
+      <IncomeToolbar
+
+        search={search}
+        setSearch={setSearch}
+
+        sourceFilter={sourceFilter}
+        setSourceFilter={setSourceFilter}
+
+        dateFilter={dateFilter}
+        setDateFilter={setDateFilter}
+
+        sortBy={sortBy}
+        setSortBy={setSortBy}
+
+      />
+
+      <div className="grid xl:grid-cols-2 gap-8">
+
+        <IncomeTrendChart />
+
+        <IncomeSourceChart />
+
       </div>
+
+      <IncomeHistory />
+
+      <div className="grid xl:grid-cols-2 gap-8">
+
+        <RecurringIncome />
+
+        <IncomeGoalCard />
+
+      </div>
+
+      <IncomeTips />
+
     </div>
+
   );
+
 }
