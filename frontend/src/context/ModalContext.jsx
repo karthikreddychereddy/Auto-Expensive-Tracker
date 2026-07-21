@@ -1,6 +1,6 @@
 import { createContext, useContext, useState } from "react";
 
-const ModalContext = createContext();
+const ModalContext = createContext(null);
 
 export function ModalProvider({ children }) {
 
@@ -8,36 +8,32 @@ export function ModalProvider({ children }) {
 
   const [modalData, setModalData] = useState(null);
 
+
   const openModal = (name, data = null) => {
 
     setActiveModal(name);
-
     setModalData(data);
 
   };
 
+
   const closeModal = () => {
 
     setActiveModal(null);
-
     setModalData(null);
 
   };
+
 
   return (
 
     <ModalContext.Provider
 
       value={{
-
         activeModal,
-
         modalData,
-
         openModal,
-
         closeModal,
-
       }}
 
     >
@@ -49,5 +45,6 @@ export function ModalProvider({ children }) {
   );
 
 }
+
 
 export const useModal = () => useContext(ModalContext);

@@ -27,8 +27,8 @@ export const expenseService = {
 };
 
 export const incomeService = {
-  list: () =>
-    api.get("/income").then((r) => r.data),
+  list: (params = {}) =>
+    api.get("/income", { params }).then((r) => r.data),
 
   create: (payload) =>
     api.post("/income", {

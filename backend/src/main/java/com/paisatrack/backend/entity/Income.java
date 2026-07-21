@@ -5,6 +5,7 @@ import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "income")
@@ -20,7 +21,10 @@ public class Income {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
+    @JoinColumn(
+            name = "user_id",
+            nullable = false
+    )
     private User user;
 
     @Column(nullable = false)
@@ -38,5 +42,34 @@ public class Income {
     private LocalDate incomeDate;
 
     @Builder.Default
+    @Column(nullable = false)
     private String transactionType = "INCOME";
+
+    private LocalDateTime createdAt;
+
+    private LocalDateTime updatedAt;
+
+    @PrePersist
+    public void onCreate() {
+
+        createdAt = LocalDateTime.now();
+        updatedAt = LocalDateTime.now();
+
+        if (transactionType == null) {
+            transactionType = "INCOME";
+        }
+
+        if (source == null) {
+            source = "MANUAL";
+        }
+
+    }
+
+    @PreUpdate
+    public void onUpdate() {
+
+        updatedAt = LocalDateTime.now();
+
+    }
+
 }

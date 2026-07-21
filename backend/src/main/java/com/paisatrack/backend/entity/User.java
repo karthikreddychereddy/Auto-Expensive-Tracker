@@ -32,6 +32,7 @@ public class User {
 
     private String phoneNumber;
 
+    @Column(columnDefinition = "LONGTEXT")
     private String profileImage;
 
     @Column(nullable = false)

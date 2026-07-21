@@ -1,8 +1,8 @@
 package com.paisatrack.backend.controller;
 
-import com.paisatrack.backend.dto.CategoryExpenseResponse;
+import com.paisatrack.backend.dto.CategoryBreakdownResponse;
 import com.paisatrack.backend.dto.DashboardSummaryResponse;
-import com.paisatrack.backend.dto.MonthlySummaryResponse;
+import com.paisatrack.backend.dto.MonthlyTrendResponse;
 import com.paisatrack.backend.dto.RecentTransactionResponse;
 import com.paisatrack.backend.dto.WeeklyExpenseResponse;
 import com.paisatrack.backend.service.DashboardService;
@@ -20,27 +20,39 @@ public class DashboardController {
     private final DashboardService dashboardService;
 
     @GetMapping("/summary")
-    public DashboardSummaryResponse getSummary() {
-        return dashboardService.getDashboardSummary();
+    public DashboardSummaryResponse getSummary(
+            @RequestParam(required = false) String month) {
+
+        return dashboardService.getDashboardSummary(month);
+
     }
 
     @GetMapping("/recent-transactions")
-    public List<RecentTransactionResponse> getRecentTransactions() {
-        return dashboardService.getRecentTransactions();
+    public List<RecentTransactionResponse> getRecentTransactions(
+            @RequestParam(required = false) String month) {
+
+        return dashboardService.getRecentTransactions(month);
+
     }
 
     @GetMapping("/category-summary")
-    public List<CategoryExpenseResponse> getCategorySummary() {
-        return dashboardService.getCategoryWiseExpenses();
+    public List<CategoryBreakdownResponse> getCategorySummary(
+            @RequestParam(required = false) String month) {
+
+        return dashboardService.getCategoryWiseExpenses(month);
+
     }
 
     @GetMapping("/monthly-summary")
-    public List<MonthlySummaryResponse> getMonthlySummary() {
+    public List<MonthlyTrendResponse> getMonthlySummary() {
         return dashboardService.getMonthlySummary();
     }
 
     @GetMapping("/weekly-summary")
-    public List<WeeklyExpenseResponse> getWeeklySummary() {
-        return dashboardService.getWeeklyExpenseSummary();
+    public List<WeeklyExpenseResponse> getWeeklySummary(
+            @RequestParam(required = false) String month) {
+
+        return dashboardService.getWeeklyExpenseSummary(month);
+
     }
 }

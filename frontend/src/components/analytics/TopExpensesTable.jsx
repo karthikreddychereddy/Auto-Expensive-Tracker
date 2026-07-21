@@ -1,17 +1,23 @@
-import { useMemo } from "react";
-import { useBudget } from "../../context/BudgetContext";
+import { useInsights } from "../../context/InsightContext";
+import { formatCurrency } from "../../utils/format";
 
 export default function TopExpensesTable() {
 
-  const { selectedMonthExpenses } = useBudget();
+  const { recentTransactions, loading } = useInsights();
 
-  const topExpenses = useMemo(() => {
+  if (loading) {
+    return (
+      <div className="bg-white rounded-2xl shadow border p-6 h-[450px] animate-pulse" />
+    );
+  }
 
-    return [...selectedMonthExpenses]
-      .sort((a, b) => Number(b.amount) - Number(a.amount))
-      .slice(0, 5);
-
-  }, [selectedMonthExpenses]);
+  const expenses = (recentTransactions || [])
+    .filter(
+      (transaction) =>
+        transaction.transactionType?.toUpperCase() === "EXPENSE"
+    )
+    .sort((a, b) => Number(b.amount) - Number(a.amount))
+    .slice(0, 10);
 
   return (
 
@@ -23,73 +29,96 @@ export default function TopExpensesTable() {
 
       </h2>
 
-      <table className="w-full">
+      {expenses.length === 0 ? (
 
-        <thead className="border-b">
+        <div className="text-center py-10 text-gray-500">
 
-          <tr>
+          No expense transactions found.
 
-            <th className="text-left py-3">Title</th>
+        </div>
 
-            <th className="text-left">Category</th>
+      ) : (
 
-            <th className="text-right">Amount</th>
+        <div className="overflow-x-auto">
 
-          </tr>
+          <table className="w-full">
 
-        </thead>
+            <thead>
 
-        <tbody>
+              <tr className="border-b">
 
-          {topExpenses.map((expense) => (
+                <th className="text-left py-3 font-semibold">
 
-            <tr
-              key={expense.id}
-              className="border-b hover:bg-slate-50"
-            >
+                  Category
 
-              <td className="py-4">
+                </th>
 
-                {expense.title}
+                <th className="text-left py-3 font-semibold">
 
-              </td>
+                  Description
 
-              <td>
+                </th>
 
-                {expense.category}
+                <th className="text-left py-3 font-semibold">
 
-              </td>
+                  Date
 
-              <td className="text-right font-bold text-red-600">
+                </th>
 
-                ₹{Number(expense.amount).toLocaleString()}
+                <th className="text-right py-3 font-semibold">
 
-              </td>
+                  Amount
 
-            </tr>
+                </th>
 
-          ))}
+              </tr>
 
-          {topExpenses.length === 0 && (
+            </thead>
 
-            <tr>
+            <tbody>
 
-              <td
-                colSpan={3}
-                className="text-center py-6 text-gray-500"
-              >
+              {expenses.map((expense) => (
 
-                No expenses found
+                <tr
+                  key={expense.id}
+                  className="border-b hover:bg-gray-50"
+                >
 
-              </td>
+                  <td className="py-3">
 
-            </tr>
+                    {expense.category}
 
-          )}
+                  </td>
 
-        </tbody>
+                  <td className="py-3">
 
-      </table>
+                    {expense.description || "-"}
+
+                  </td>
+
+                  <td className="py-3">
+
+                    {expense.date}
+
+                  </td>
+
+                  <td className="py-3 text-right font-semibold text-red-600">
+
+                    {formatCurrency(Number(expense.amount))}
+
+                  </td>
+
+                </tr>
+
+              ))}
+
+            </tbody>
+
+          </table>
+
+        </div>
+
+      )}
 
     </div>
 

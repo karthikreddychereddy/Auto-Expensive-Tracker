@@ -1,52 +1,45 @@
-import { useMemo } from "react";
 import {
   ResponsiveContainer,
   BarChart,
   Bar,
+  CartesianGrid,
+  Tooltip,
   XAxis,
   YAxis,
-  Tooltip,
-  CartesianGrid,
 } from "recharts";
 
-import { useBudget } from "../../context/BudgetContext";
+import { useInsights } from "../../context/InsightContext";
 
 export default function CategoryBarChart() {
 
-  const { selectedMonthExpenses } = useBudget();
+  const { categoryBreakdown, loading } = useInsights();
 
-  const chartData = useMemo(() => {
+  if (loading) {
 
-    const totals = {};
+    return (
+      <div className="bg-white rounded-2xl shadow border p-6 h-[400px] animate-pulse" />
+    );
 
-    selectedMonthExpenses.forEach((expense) => {
+  }
 
-      totals[expense.category] =
-        (totals[expense.category] || 0) +
-        Number(expense.amount);
+  const data = categoryBreakdown.map(item => ({
 
-    });
+    category: item.category,
+    amount: Number(item.amount),
 
-    return Object.entries(totals).map(([category, amount]) => ({
-      category,
-      amount,
-    }));
-
-  }, [selectedMonthExpenses]);
+  }));
 
   return (
 
     <div className="bg-white rounded-2xl shadow border p-6 h-[400px]">
 
       <h2 className="text-2xl font-bold mb-6">
-
         Category Wise Spending
-
       </h2>
 
       <ResponsiveContainer width="100%" height="90%">
 
-        <BarChart data={chartData}>
+        <BarChart data={data}>
 
           <CartesianGrid strokeDasharray="3 3" />
 
@@ -54,9 +47,7 @@ export default function CategoryBarChart() {
 
           <YAxis />
 
-          <Tooltip
-            formatter={(value) => [`₹${value}`, "Spent"]}
-          />
+          <Tooltip />
 
           <Bar
             dataKey="amount"

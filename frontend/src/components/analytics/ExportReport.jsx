@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { FaDownload } from "react-icons/fa";
 import { useBudget } from "../../context/BudgetContext";
-import { useReports } from "../../context/ReportContext";
+import { useInsights } from "../../context/InsightContext";
 
 import exportExcel from "./ExportExcel";
 
@@ -12,7 +12,7 @@ export default function ExportReport() {
 
   const { selectedMonth } = useBudget();
 
-  const { monthlyExpenses } = useReports();
+  const { recentTransactions } = useInsights();
 
   const [openMenu, setOpenMenu] = useState(false);
 
@@ -86,7 +86,7 @@ export default function ExportReport() {
 
           <button
             onClick={() => {
-                exportExcel(monthlyExpenses, selectedMonth);
+                exportExcel(recentTransactions, selectedMonth);
                 setOpenMenu(false);
             }}
             className="w-full text-left px-5 py-3 hover:bg-gray-100"

@@ -11,6 +11,7 @@ import com.paisatrack.backend.util.SecurityUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.YearMonth;
 import java.util.List;
 import java.util.Optional;
 
@@ -56,7 +57,7 @@ public class ExpenseServiceImpl implements ExpenseService {
     }
 
     @Override
-        public List<ExpenseResponse> getAllExpenses() {
+        public List<ExpenseResponse> getAllExpenses(String month) {
 
         String email = SecurityUtil.getCurrentUserEmail();
         System.out.println("Current User Email: " + email);
@@ -64,7 +65,19 @@ public class ExpenseServiceImpl implements ExpenseService {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        List<Expense> expenses = expenseRepository.findByUser(user);
+        List<Expense> expenses =
+                expenseRepository.findByUser(user);
+
+        if (month != null && !month.isBlank()) {
+
+        YearMonth ym = YearMonth.parse(month);
+
+        expenses = expenses.stream()
+                .filter(e ->
+                        YearMonth.from(e.getExpenseDate())
+                                .equals(ym))
+                .toList();
+        }
 
 
         return expenses.stream()

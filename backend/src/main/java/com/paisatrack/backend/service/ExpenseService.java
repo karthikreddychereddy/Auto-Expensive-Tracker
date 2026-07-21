@@ -9,11 +9,12 @@ public interface ExpenseService {
 
     ExpenseResponse addExpense(ExpenseRequest request);
 
-    List<ExpenseResponse> getAllExpenses();
+    List<ExpenseResponse> getAllExpenses(String month);
 
     ExpenseResponse getExpenseById(Long id);
 
     ExpenseResponse updateExpense(Long id, ExpenseRequest request);
 
     void deleteExpense(Long id);
+
 }

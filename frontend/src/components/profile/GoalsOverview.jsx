@@ -1,15 +1,22 @@
-import { FaBullseye, FaCheckCircle, FaChartLine, FaCoins } from "react-icons/fa";
+import { motion } from "framer-motion";
+import {
+  FaBullseye,
+  FaCircleCheck,
+  FaChartLine,
+  FaCoins,
+} from "react-icons/fa6";
+
 import { useGoal } from "../../context/GoalContext";
 import { formatCurrency } from "../../utils/format";
 
 export default function GoalsOverview() {
 
   const {
+    goals,
     totalGoals,
     activeGoals,
     completedGoals,
     overallProgress,
-    goals,
   } = useGoal();
 
   const targetAmount = goals.reduce(
@@ -19,91 +26,91 @@ export default function GoalsOverview() {
 
   const cards = [
     {
-      title: "Total Goals",
+      title: "Goals",
       value: totalGoals,
       icon: <FaBullseye />,
-      color: "bg-blue-100 text-blue-600",
+      color: "bg-blue-500",
     },
     {
-      title: "Active Goals",
+      title: "Active",
       value: activeGoals,
       icon: <FaChartLine />,
-      color: "bg-orange-100 text-orange-600",
+      color: "bg-orange-500",
     },
     {
       title: "Completed",
       value: completedGoals,
-      icon: <FaCheckCircle />,
-      color: "bg-green-100 text-green-600",
+      icon: <FaCircleCheck />,
+      color: "bg-green-500",
     },
     {
-      title: "Target Amount",
+      title: "Target",
       value: formatCurrency(targetAmount),
       icon: <FaCoins />,
-      color: "bg-purple-100 text-purple-600",
+      color: "bg-purple-500",
     },
   ];
 
   return (
-    <div className="space-y-6">
+    <section className="space-y-8">
 
-      <div className="flex items-center justify-between">
+      <div className="flex justify-between items-center">
 
-        <h2 className="text-2xl font-bold">
+        <h2 className="text-3xl font-bold">
           Goals Overview
         </h2>
 
-        <span className="text-[#0B6B57] font-semibold">
-          {overallProgress.toFixed(1)}% Completed
+        <span className="font-bold text-[#0B6B57]">
+          {overallProgress.toFixed(1)}%
         </span>
 
       </div>
 
-      <div className="w-full h-4 bg-gray-200 rounded-full overflow-hidden">
+      <div className="w-full h-4 rounded-full bg-gray-200 overflow-hidden">
 
-        <div
-          className="h-full bg-[#0B6B57] transition-all duration-700"
-          style={{
-            width: `${overallProgress}%`,
-          }}
+        <motion.div
+          initial={{ width: 0 }}
+          animate={{ width: `${overallProgress}%` }}
+          transition={{ duration: 1 }}
+          className="h-full bg-gradient-to-r from-[#0B6B57] to-[#12A67D]"
         />
 
       </div>
 
       <div className="grid md:grid-cols-2 xl:grid-cols-4 gap-6">
 
-        {cards.map((card) => (
+        {cards.map((card, i) => (
 
-          <div
+          <motion.div
             key={card.title}
-            className="bg-white rounded-3xl border border-gray-100 shadow-sm p-6 hover:shadow-lg transition"
+            initial={{ opacity: 0, y: 25 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: i * 0.1 }}
+            whileHover={{ y: -5 }}
+            className="bg-white rounded-3xl border shadow-lg p-6"
           >
 
-            <div className={`w-14 h-14 rounded-2xl flex items-center justify-center text-2xl ${card.color}`}>
+            <div className={`w-14 h-14 ${card.color} rounded-2xl text-white flex items-center justify-center text-2xl`}>
 
               {card.icon}
 
             </div>
 
             <p className="text-gray-500 mt-5">
-
               {card.title}
-
             </p>
 
-            <h2 className="text-2xl font-bold mt-2">
-
+            <h2 className="text-3xl font-bold mt-2">
               {card.value}
-
             </h2>
 
-          </div>
+          </motion.div>
 
         ))}
 
       </div>
 
-    </div>
+    </section>
   );
 
 }

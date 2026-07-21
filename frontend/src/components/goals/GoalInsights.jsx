@@ -28,15 +28,13 @@ export default function GoalInsights() {
 
     );
 
-    const nearestGoal = [...active].sort(
-
-        (a,b)=>
-
-            new Date(a.deadline)-
-
-            new Date(b.deadline)
-
-    )[0];
+    const nearestGoal = [...active]
+        .filter(item => item.deadline)
+        .sort(
+            (a,b)=>
+                new Date(a.deadline) -
+                new Date(b.deadline)
+        )[0];
 
     return (
 

@@ -1,9 +1,11 @@
 import ProfileHeader from "../components/profile/ProfileHeader";
-import ProfileInformation from "../components/profile/ProfileInformation";
 import FinancialHealthCard from "../components/profile/FinancialHealthCard";
-import ProfileSummary from "../components/profile/ProfileSummary";
 import GoalsOverview from "../components/profile/GoalsOverview";
 import AchievementSection from "../components/profile/AchievementSection";
+import MonthlyStatistics from "../components/profile/MonthlyStatistics";
+import AIFinancialInsights from "../components/profile/AIFinancialInsights";
+import RecentActivity from "../components/profile/RecentActivity";
+import EditProfileModal from "../components/profile/EditProfileModal";
 
 export default function Profile() {
 
@@ -13,19 +15,19 @@ export default function Profile() {
 
             <ProfileHeader />
 
-            <div className="grid lg:grid-cols-2 gap-8">
+            <FinancialHealthCard />
 
-                <ProfileInformation />
-
-                <FinancialHealthCard />
-
-            </div>
-
-            <ProfileSummary />
+            <MonthlyStatistics />
 
             <GoalsOverview />
 
             <AchievementSection />
+
+            <AIFinancialInsights />
+
+            <RecentActivity />
+
+            <EditProfileModal />
 
         </div>
 

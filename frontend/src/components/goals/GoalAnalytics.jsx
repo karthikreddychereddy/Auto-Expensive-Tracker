@@ -63,7 +63,7 @@ export default function GoalAnalytics() {
 
             title: "Average Progress",
 
-            value: `${overallProgress.toFixed(1)}%`,
+            value: `${Number(overallProgress || 0).toFixed(1)}%`,
 
             icon: <FaChartLine />,
 

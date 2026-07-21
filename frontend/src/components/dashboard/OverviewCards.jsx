@@ -12,12 +12,13 @@ import { useMemo } from "react";
 import { useExpenses } from "../../context/ExpenseContext";
 import { useSavings } from "../../context/SavingsContext";
 import { useGoal } from "../../context/GoalContext";
+import { useDashboard } from "../../context/DashboardContext";
 
 import { formatCurrency } from "../../utils/format";
 
-export default function OverviewCards({ summary }) {
+export default function OverviewCards() {
 
-  console.log("Overview Summary:", summary);
+  const { summary } = useDashboard();
 
   const { expenses } = useExpenses();
 
@@ -32,7 +33,6 @@ export default function OverviewCards({ summary }) {
     return expenses
       .filter(
         (item) =>
-          item.transactionType !== "Income" &&
           item.date === today
       )
       .reduce(
@@ -40,10 +40,9 @@ export default function OverviewCards({ summary }) {
         0
       );
 
-  }, [expenses]);
+  }, [expenses, today]);
 
   const cards = [
-
     {
       title: "Today's Spending",
       value: todayExpense,
@@ -51,26 +50,26 @@ export default function OverviewCards({ summary }) {
       icon: <FaMoneyBillWave />,
       color: "bg-red-500",
       bg: "bg-red-50",
+      currency: true,
     },
-
     {
       title: "Total Income",
-      value: summary?.totalIncome || 0,
-      subtitle: `${summary?.incomeCount || 0} Income Records`,
+      value: summary?.totalIncome ?? 0,
+      subtitle: `${summary?.incomeCount ?? 0} Income Records`,
       icon: <FaArrowTrendUp />,
       color: "bg-green-500",
       bg: "bg-green-50",
+      currency: true,
     },
-
     {
       title: "Total Expense",
-      value: summary?.totalExpense || 0,
-      subtitle: `${summary?.expenseCount || 0} Expense Records`,
+      value: summary?.totalExpense ?? 0,
+      subtitle: `${summary?.expenseCount ?? 0} Expense Records`,
       icon: <FaArrowTrendDown />,
       color: "bg-orange-500",
       bg: "bg-orange-50",
+      currency: true,
     },
-
     {
       title: "Savings",
       value: totalSavings,
@@ -78,26 +77,26 @@ export default function OverviewCards({ summary }) {
       icon: <FaPiggyBank />,
       color: "bg-purple-500",
       bg: "bg-purple-50",
+      currency: true,
     },
-
     {
       title: "Goals",
       value: totalGoals,
-      subtitle: "Active Goals",
+      subtitle: `${totalGoals} Active Goals`,
       icon: <FaBullseye />,
       color: "bg-blue-500",
       bg: "bg-blue-50",
+      currency: false,
     },
-
     {
       title: "Balance",
-      value: summary?.currentBalance || 0,
+      value: summary?.currentBalance ?? 0,
       subtitle: "Available",
       icon: <FaWallet />,
       color: "bg-emerald-500",
       bg: "bg-emerald-50",
+      currency: true,
     },
-
   ];
 
   return (
@@ -122,23 +121,17 @@ export default function OverviewCards({ summary }) {
             <div>
 
               <p className="text-sm text-gray-500">
-
                 {card.title}
-
               </p>
 
               <h2 className="text-3xl font-bold mt-3 text-slate-800">
-
-                {typeof card.value === "number"
+                {card.currency
                   ? formatCurrency(card.value)
                   : card.value}
-
               </h2>
 
               <p className="text-sm text-gray-500 mt-3">
-
                 {card.subtitle}
-
               </p>
 
             </div>
@@ -146,9 +139,7 @@ export default function OverviewCards({ summary }) {
             <div
               className={`${card.color} w-14 h-14 rounded-2xl flex justify-center items-center text-white text-xl`}
             >
-
               {card.icon}
-
             </div>
 
           </div>

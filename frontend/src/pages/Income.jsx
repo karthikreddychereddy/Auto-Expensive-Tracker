@@ -11,7 +11,8 @@ import IncomeToolbar from "../components/income/IncomeToolbar";
 import { useIncome } from "../context/IncomeContext";
 import { useMonth } from "../context/MonthContext";
 
-
+import PageTransition from "../components/animations/PageTransition";
+import FadeCard from "../components/animations/FadeCard";
 
 export default function Income() {
 
@@ -35,49 +36,69 @@ export default function Income() {
 
   return (
 
-    <div className="space-y-8">
+    <PageTransition>
 
-      <IncomeHeader />
+      <div className="space-y-8">
 
-      <IncomeSummaryCards />
+        <IncomeHeader />
 
-      <IncomeToolbar
+        <FadeCard delay={0.10}>
+          <IncomeSummaryCards />
+        </FadeCard>
 
-        search={search}
-        setSearch={setSearch}
+        <FadeCard delay={0.15}>
+          <IncomeToolbar
 
-        sourceFilter={sourceFilter}
-        setSourceFilter={setSourceFilter}
+            search={search}
+            setSearch={setSearch}
 
-        dateFilter={dateFilter}
-        setDateFilter={setDateFilter}
+            sourceFilter={sourceFilter}
+            setSourceFilter={setSourceFilter}
 
-        sortBy={sortBy}
-        setSortBy={setSortBy}
+            dateFilter={dateFilter}
+            setDateFilter={setDateFilter}
 
-      />
+            sortBy={sortBy}
+            setSortBy={setSortBy}
 
-      <div className="grid xl:grid-cols-2 gap-8">
+          />
+        </FadeCard>
 
-        <IncomeTrendChart />
+        <div className="grid xl:grid-cols-2 gap-8">
 
-        <IncomeSourceChart />
+          <FadeCard delay={0.20}>
+            <IncomeTrendChart />
+          </FadeCard>
+
+          <FadeCard delay={0.25}>
+            <IncomeSourceChart />
+          </FadeCard>
+
+        </div>
+
+        <FadeCard delay={0.30}>
+          <IncomeHistory />
+        </FadeCard>
+
+        <div className="grid xl:grid-cols-2 gap-8">
+
+          <FadeCard delay={0.35}>
+            <RecurringIncome />
+          </FadeCard>
+
+          <FadeCard delay={0.40}>
+            <IncomeGoalCard />
+          </FadeCard>
+
+        </div>
+
+        <FadeCard delay={0.45}>
+          <IncomeTips />
+        </FadeCard>
 
       </div>
 
-      <IncomeHistory />
-
-      <div className="grid xl:grid-cols-2 gap-8">
-
-        <RecurringIncome />
-
-        <IncomeGoalCard />
-
-      </div>
-
-      <IncomeTips />
-
-    </div>
+    </PageTransition>
 
   );
 

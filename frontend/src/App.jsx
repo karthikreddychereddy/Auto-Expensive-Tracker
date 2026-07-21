@@ -25,7 +25,6 @@ import Settings from "./pages/Settings";
 import Profile from "./pages/Profile";
 import Insights from "./pages/Insights";
 import ModalContainer from "./components/common/ModalContainer";
-import Logout from "./pages/Logout";
 
 export default function App() {
 
@@ -48,8 +47,6 @@ export default function App() {
           <Route path="/forgot-password" element={<ForgotPassword />} />
 
           <Route path="/reset-password" element={<ResetPassword />} />
-
-          <Route path="/logout" element={<Logout />} />
 
         </Route>
 

@@ -27,9 +27,10 @@ public class ExpenseController {
     }
 
     @GetMapping
-    public List<ExpenseResponse> getAllExpenses() {
+    public List<ExpenseResponse> getAllExpenses(
+            @RequestParam(required = false) String month) {
 
-        return expenseService.getAllExpenses();
+        return expenseService.getAllExpenses(month);
     }
 
     @GetMapping("/{id}")

@@ -6,27 +6,49 @@ import GoalHistory from "../components/goals/GoalHistory";
 import GoalAnalytics from "../components/goals/GoalAnalytics";
 import GoalInsights from "../components/goals/GoalInsights";
 
+import PageTransition from "../components/animations/PageTransition";
+import FadeCard from "../components/animations/FadeCard";
+
 export default function Goals() {
 
     return (
 
-        <div className="space-y-8">
+        <PageTransition>
 
-            <GoalHeader />
+            <div className="space-y-8">
 
-            <GoalSummaryCards />
+                <GoalHeader />
 
-            <GoalToolbar />
+                <FadeCard delay={0.10}>
+                    <GoalSummaryCards />
+                </FadeCard>
 
-            {/* <GoalAnalytics /> */}
+                <FadeCard delay={0.15}>
+                    <GoalToolbar />
+                </FadeCard>
 
-            <GoalGrid />
+                {/* Enable whenever GoalAnalytics is ready */}
+                {/* 
+                <FadeCard delay={0.20}>
+                    <GoalAnalytics />
+                </FadeCard>
+                */}
 
-            <GoalHistory />
+                <FadeCard delay={0.20}>
+                    <GoalGrid />
+                </FadeCard>
 
-            <GoalInsights />
+                <FadeCard delay={0.25}>
+                    <GoalHistory />
+                </FadeCard>
 
-        </div>
+                <FadeCard delay={0.30}>
+                    <GoalInsights />
+                </FadeCard>
+
+            </div>
+
+        </PageTransition>
 
     );
 

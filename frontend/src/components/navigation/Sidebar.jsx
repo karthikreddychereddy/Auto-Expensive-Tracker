@@ -9,6 +9,7 @@ import {
   MdCategory,
   MdAnalytics,
 } from "react-icons/md";
+import { FaBell } from "react-icons/fa";
 
 import {
   FaWallet,
@@ -74,8 +75,6 @@ export default function Sidebar() {
   const navigate = useNavigate();
 
   const handleLogout = () => {
-
-    logout();
 
     navigate("/login");
 
@@ -171,21 +170,6 @@ export default function Sidebar() {
           </span>
 
         </NavLink>
-
-        <button
-          onClick={handleLogout}
-          className="w-full flex items-center gap-4 px-5 py-3 rounded-xl text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all duration-300"
-        >
-
-          <FiLogOut size={20} />
-
-          <span className="font-medium">
-
-            Logout
-
-          </span>
-
-        </button>
 
       </div>
 

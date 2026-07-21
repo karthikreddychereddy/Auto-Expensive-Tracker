@@ -9,7 +9,7 @@ public interface IncomeService {
 
     IncomeResponse addIncome(IncomeRequest request);
 
-    List<IncomeResponse> getAllIncome();
+    List<IncomeResponse> getAllIncome(String month);
 
     IncomeResponse getIncomeById(Long id);
 

@@ -7,7 +7,6 @@ import AnalyticsSummaryCards from "./AnalyticsSummaryCards";
 import PaymentMethodChart from "./PaymentMethodChart";
 
 import ExportReport from "./ExportReport";
-import MonthSelector from "../common/MonthSelector";
 
 export default function AnalyticsDashboard() {
 
@@ -43,8 +42,6 @@ export default function AnalyticsDashboard() {
           {/* Right */}
 
           <div className="flex items-center gap-4 shrink-0">
-
-            <MonthSelector />
 
             <ExportReport />
 

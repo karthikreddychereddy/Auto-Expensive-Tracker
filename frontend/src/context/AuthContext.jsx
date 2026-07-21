@@ -1,67 +1,111 @@
-import { createContext, useContext, useState } from "react";
+import {
+  createContext,
+  useContext,
+  useState,
+} from "react";
+
 import toast from "react-hot-toast";
 import api from "../services/api";
 
+
 const AuthContext = createContext(null);
+
 
 export function AuthProvider({ children }) {
 
+
   const [user, setUser] = useState(() => {
 
-    const stored = localStorage.getItem("pt_user");
+    const stored =
+      localStorage.getItem("pt_user");
 
-    return stored ? JSON.parse(stored) : null;
+    return stored
+      ? JSON.parse(stored)
+      : null;
 
   });
 
+
   const [loading] = useState(false);
 
-  const login = async (email, password) => {
 
-    const response = await api.post("/auth/login", {
-      email,
-      password,
-    });
 
-    const { token } = response.data;
-
-    localStorage.setItem("pt_token", token);
-
-    const loggedInUser = {
-      email
-    };
+  const saveUser = (userData) => {
 
     localStorage.setItem(
       "pt_user",
-      JSON.stringify(loggedInUser)
+      JSON.stringify(userData)
     );
 
-    setUser(loggedInUser);
+    setUser(userData);
+
+  };
+
+
+
+
+  const login = async (email, password) => {
+
+
+    const response =
+      await api.post(
+        "/auth/login",
+        {
+          email,
+          password,
+        }
+      );
+
+
+    const {
+      token,
+      user
+    } = response.data;
+
+
+
+    localStorage.setItem(
+      "pt_token",
+      token
+    );
+
+
+
+    saveUser(user);
+
+
 
     return response.data;
 
   };
 
+
+
+
+
+
+
   const register = async (payload) => {
 
-    const response = await api.post("/auth/register", payload);
 
-    const { token } = response.data;
+    const response =
+      await api.post(
+        "/auth/register",
+        payload
+      );
 
-    localStorage.setItem("pt_token", token);
 
-    const registeredUser = {
-      firstName: payload.firstName,
-      lastName: payload.lastName,
-      email: payload.email,
-    };
+    const {
+      token,
+      user
+    } = response.data;
 
     localStorage.setItem(
-      "pt_user",
-      JSON.stringify(registeredUser)
+      "pt_token",
+      token
     );
 
-    setUser(registeredUser);
+    saveUser(user);
 
     return response.data;
 
@@ -69,18 +113,18 @@ export function AuthProvider({ children }) {
 
   const logout = () => {
 
-    localStorage.removeItem("pt_token");
-    localStorage.removeItem("pt_user");
+    localStorage.removeItem(
+      "pt_token"
+    );
 
     setUser(null);
-
-    toast.success("Logged out successfully");
 
   };
 
   return (
 
     <AuthContext.Provider
+
       value={{
         user,
         loading,
@@ -88,6 +132,7 @@ export function AuthProvider({ children }) {
         register,
         logout
       }}
+
     >
 
       {children}
@@ -98,4 +143,7 @@ export function AuthProvider({ children }) {
 
 }
 
-export const useAuth = () => useContext(AuthContext);
+
+
+export const useAuth = () =>
+  useContext(AuthContext);

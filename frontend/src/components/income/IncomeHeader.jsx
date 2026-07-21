@@ -34,8 +34,6 @@ export default function IncomeHeader() {
 
         <div className="flex items-center gap-4">
 
-          <MonthSelector />
-
           <button
             onClick={() => openModal("income")}
             className="flex items-center gap-3 bg-[#0B6B57] hover:bg-[#095544]

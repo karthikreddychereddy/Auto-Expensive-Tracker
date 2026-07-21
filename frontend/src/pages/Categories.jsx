@@ -5,25 +5,42 @@ import CategoryGrid from "../components/categories/CategoryGrid";
 import CategoryHistory from "../components/categories/CategoryHistory";
 import CategoryInsights from "../components/categories/CategoryInsights";
 
+import PageTransition from "../components/animations/PageTransition";
+import FadeCard from "../components/animations/FadeCard";
+
 export default function Categories() {
 
     return (
 
-        <div className="space-y-8">
+        <PageTransition>
 
-            <CategoryHeader />
+            <div className="space-y-8">
 
-            <CategorySummaryCards />
+                <CategoryHeader />
 
-            <CategoryToolbar />
+                <FadeCard delay={0.10}>
+                    <CategorySummaryCards />
+                </FadeCard>
 
-            <CategoryGrid />
+                <FadeCard delay={0.15}>
+                    <CategoryToolbar />
+                </FadeCard>
 
-            <CategoryHistory />
+                <FadeCard delay={0.20}>
+                    <CategoryGrid />
+                </FadeCard>
 
-            <CategoryInsights />
+                <FadeCard delay={0.25}>
+                    <CategoryHistory />
+                </FadeCard>
 
-        </div>
+                <FadeCard delay={0.30}>
+                    <CategoryInsights />
+                </FadeCard>
+
+            </div>
+
+        </PageTransition>
 
     );
 

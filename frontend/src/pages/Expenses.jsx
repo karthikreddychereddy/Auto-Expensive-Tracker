@@ -7,17 +7,17 @@ import ExpenseInsights from "../components/expenses/ExpenseInsights";
 import AddExpenseModal from "../components/expenses/modals/AddExpenseModal";
 import ExpenseTable from "../components/expenses/table/ExpenseTable";
 import ExportButtons from "../components/expenses/ExportButtons";
+import { useExpenses } from "../context/ExpenseContext";
 import { useMonth } from "../context/MonthContext";
 
-
+import PageTransition from "../components/animations/PageTransition";
+import FadeCard from "../components/animations/FadeCard";
 
 import {
   exportCSV,
   exportExcel,
   exportPDF,
 } from "../utils/exportUtils";
-
-import { useExpenses } from "../context/ExpenseContext";
 
 import { FaPlus } from "react-icons/fa";
 
@@ -41,66 +41,78 @@ export default function Expenses() {
   };
 
   return (
+    <PageTransition>
 
-    <div className="space-y-8">
+      <div className="space-y-8">
 
-      {/* Header */}
+        {/* Header */}
 
-      <div className="flex justify-between items-center flex-wrap gap-4">
+        <div className="flex justify-between items-center flex-wrap gap-4">
 
-        <div>
+          <div>
 
-          <h1 className="text-4xl font-bold text-gray-800">
-            Expenses
-          </h1>
+            <h1 className="text-4xl font-bold text-gray-800">
+              Expenses
+            </h1>
 
-          <p className="text-gray-500 mt-2">
-            Track and manage every expense in one place.
-          </p>
+            <p className="text-gray-500 mt-2">
+              Track and manage every expense in one place.
+            </p>
+
+          </div>
+
+          <div className="flex items-center gap-4">
+
+            <ExportButtons
+              onCSV={() => exportCSV(filteredExpenses)}
+              onExcel={() => exportExcel(filteredExpenses)}
+              onPDF={() => exportPDF(filteredExpenses)}
+            />
+
+            <button
+              onClick={openAddModal}
+              className="bg-[#0B6B57] hover:bg-[#085443] text-white px-6 py-3 rounded-xl font-semibold flex items-center gap-3 transition"
+            >
+              <FaPlus />
+              Add Expense
+            </button>
+
+          </div>
 
         </div>
 
-        <div className="flex items-center gap-4">
+        <FadeCard delay={0.10}>
+          <ExpenseSummary />
+        </FadeCard>
 
-          <ExportButtons
-            onCSV={() => exportCSV(filteredExpenses)}
-            onExcel={() => exportExcel(filteredExpenses)}
-            onPDF={() => exportPDF(filteredExpenses)}
-          />
+        <FadeCard delay={0.15}>
+          <ExpenseSearch />
+        </FadeCard>
 
-          <button
-            onClick={openAddModal}
-            className="bg-[#0B6B57] hover:bg-[#085443] text-white px-6 py-3 rounded-xl font-semibold flex items-center gap-3 transition"
-          >
-            <FaPlus />
-            Add Expense
-          </button>
+        <FadeCard delay={0.20}>
+          <ExpenseFilters />
+        </FadeCard>
 
-        </div>
+        <FadeCard delay={0.25}>
+          <ExpenseInsights />
+        </FadeCard>
+
+        <FadeCard delay={0.30}>
+          <ExpenseTable onEdit={openEditModal} />
+        </FadeCard>
+
+        <AddExpenseModal
+          open={open}
+          initialExpense={editingExpense}
+          onClose={() => {
+            setOpen(false);
+            setEditingExpense(null);
+          }}
+        />
 
       </div>
 
-      <ExpenseSummary />
-
-      <ExpenseSearch />
-
-      <ExpenseFilters />
-
-      <ExpenseInsights />
-
-      <ExpenseTable onEdit={openEditModal} />
-
-      <AddExpenseModal
-        open={open}
-        initialExpense={editingExpense}
-        onClose={() => {
-          setOpen(false);
-          setEditingExpense(null);
-        }}
-      />
-
-    </div>
-
+    </PageTransition>
   );
 
 }

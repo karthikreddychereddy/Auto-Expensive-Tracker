@@ -13,7 +13,16 @@ import { formatCurrency } from "../../utils/format";
 export default function IncomeSummaryCards() {
 
 
-  const { income = [], totalIncome } = useIncome();
+  const {
+    income = [],
+    filteredIncome = [],
+    totalIncome,
+  } = useIncome();
+  const incomeEntries = useMemo(() => {
+
+    return filteredIncome.length;
+
+  }, [filteredIncome]);
 
 
   const currentMonth = new Date().getMonth();
@@ -57,51 +66,23 @@ export default function IncomeSummaryCards() {
 
       );
 
-
   }, [income, currentMonth, currentYear]);
-
-
-
-
 
   const averageMonthly = useMemo(() => {
 
-
     if (income.length === 0)
-
       return 0;
 
-
-
-    const months = new Set(
-
-      income
-
-        .filter(item => item.incomeDate)
-
-        .map(
-          (item) =>
-            item.incomeDate.slice(0, 7)
-        )
-
+    const yearlyTotal = income.reduce(
+      (sum, item) => sum + Number(item.amount || 0),
+      0
     );
 
+    return yearlyTotal / 12;
 
+  }, [income]);
 
-    return months.size > 0
-
-      ? totalIncome / months.size
-
-      : 0;
-
-
-
-  }, [income, totalIncome]);
-
-
-
-
-
+ 
 
   const highestIncome = useMemo(() => {
 
@@ -171,25 +152,19 @@ export default function IncomeSummaryCards() {
 
     },
 
-
-
     {
+      title: "Income Entries",
 
-      title: "This Month",
+      value: incomeEntries,
 
-      value: thisMonthIncome,
-
-      subtitle: "Current Month",
+      subtitle: "Selected Month",
 
       color: "bg-blue-500",
 
       bg: "bg-blue-50",
 
       icon: <FaCalendarAlt />,
-
     },
-
-
 
     {
 
@@ -251,13 +226,9 @@ export default function IncomeSummaryCards() {
 
         >
 
-
-
           <div className="flex justify-between">
 
-
             <div>
-
 
               <p className="text-sm text-gray-500">
 
@@ -265,15 +236,11 @@ export default function IncomeSummaryCards() {
 
               </p>
 
-
-
               <h2 className="text-3xl font-bold text-slate-800 mt-3">
-
-                {formatCurrency(card.value)}
-
+                {card.title === "Income Entries"
+                  ? card.value
+                  : formatCurrency(card.value)}
               </h2>
-
-
 
               <p className="text-sm text-gray-500 mt-3">
 

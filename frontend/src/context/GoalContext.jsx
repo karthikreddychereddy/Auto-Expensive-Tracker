@@ -9,6 +9,8 @@ import {
 import toast from "react-hot-toast";
 
 import { goalService } from "../services/goalService";
+import { useAuth } from "./AuthContext";
+
 
 const GoalContext = createContext(null);
 
@@ -16,48 +18,83 @@ const GoalContext = createContext(null);
 export function GoalProvider({ children }) {
 
 
+  const { user } = useAuth();
+
+
   const [goals, setGoals] = useState([]);
+
+  const [goalProgress, setGoalProgress] = useState(null);
 
 
   const [search, setSearch] = useState("");
 
-  const [priorityFilter, setPriorityFilter] = useState("All");
+  const [priorityFilter, setPriorityFilter] =
+    useState("All");
 
-  const [statusFilter, setStatusFilter] = useState("All");
+  const [statusFilter, setStatusFilter] =
+    useState("All");
 
 
 
-  // ===========================
+  // ==========================
   // Load Goals
-  // ===========================
+  // ==========================
+
 
   const loadGoals = async () => {
 
+
+    if (!user) {
+
+      setGoals([]);
+
+      return;
+
+    }
+
+
     try {
 
-      const data = await goalService.getAll();
+
+      const data =
+        await goalService.getAll();
+
 
 
       const formatted = data.map(item => ({
 
+
         id: item.id,
+
 
         title: item.goalName,
 
-        targetAmount: item.targetAmount,
 
-        savedAmount: item.savedAmount,
+        targetAmount:
+          Number(item.targetAmount || 0),
 
-        deadline: item.targetDate,
+
+        savedAmount:
+          Number(item.savedAmount || 0),
+
+
+        deadline:
+          item.targetDate,
+
 
         status:
           item.status === "COMPLETED"
             ? "Completed"
             : "Active",
 
-        progress: item.progress,
 
-        remainingAmount: item.remainingAmount,
+        progress:
+          item.progress,
+
+
+        remainingAmount:
+          item.remainingAmount,
+
 
       }));
 
@@ -65,28 +102,106 @@ export function GoalProvider({ children }) {
       setGoals(formatted);
 
 
-    } catch (error) {
 
-      toast.error("Failed to load goals");
+    } catch(error) {
+
+
+      console.log(
+        "LOAD GOALS ERROR:",
+        error.response?.data || error.message
+      );
+
+
+      toast.error(
+        "Failed to load goals"
+      );
+
 
     }
+
 
   };
 
 
 
+
+
+  // ==========================
+  // Load Progress
+  // ==========================
+
+
+  const loadProgress = async () => {
+
+
+    if (!user) {
+
+      setGoalProgress(null);
+
+      return;
+
+    }
+
+
+    try {
+
+
+      const data =
+        await goalService.getProgress();
+
+
+      setGoalProgress(data);
+
+
+
+    } catch(error) {
+
+
+      console.log(
+        "LOAD PROGRESS ERROR:",
+        error.response?.data || error.message
+      );
+
+
+    }
+
+
+  };
+
+
+
+
+
+  // Reload on user change
+
   useEffect(() => {
 
-    loadGoals();
 
-  }, []);
+    if(user){
+
+      loadGoals();
+
+      loadProgress();
+
+    }
+    else{
+
+      setGoals([]);
+
+      setGoalProgress(null);
+
+    }
+
+
+  },[user]);
 
 
 
 
-  // ===========================
+
+  // ==========================
   // CRUD
-  // ===========================
+  // ==========================
 
 
   const addGoal = async (payload) => {
@@ -97,21 +212,29 @@ export function GoalProvider({ children }) {
 
       await goalService.create({
 
-        goalName: payload.title,
+        goalName: payload.goalName,
 
         targetAmount: payload.targetAmount,
 
         savedAmount: payload.savedAmount,
 
-        targetDate: payload.deadline,
+        targetDate: payload.targetDate,
 
       });
 
 
 
-      toast.success("Goal Added");
+      toast.success(
+        "Goal Added"
+      );
 
-      loadGoals();
+
+
+      await loadGoals();
+
+      await loadProgress();
+
+
 
       window.dispatchEvent(
         new Event("dashboard-update")
@@ -120,9 +243,20 @@ export function GoalProvider({ children }) {
 
     } catch(error) {
 
-      toast.error("Failed to add goal");
+
+      console.log(
+        "ADD GOAL ERROR:",
+        error.response?.data || error.message
+      );
+
+
+      toast.error(
+        "Failed to add goal"
+      );
+
 
     }
+
 
   };
 
@@ -130,43 +264,50 @@ export function GoalProvider({ children }) {
 
 
 
-  const updateGoal = async (id, payload) => {
+  const updateGoal = async (id,payload) => {
 
 
     try {
 
 
-      await goalService.update(id, {
+      await goalService.update(id,{
 
-
-        goalName: payload.title,
+        goalName: payload.goalName,
 
         targetAmount: payload.targetAmount,
 
         savedAmount: payload.savedAmount,
 
-        targetDate: payload.deadline,
-
+        targetDate: payload.targetDate,
 
       });
 
 
 
-      toast.success("Goal Updated");
-
-      loadGoals();
-
-
-      window.dispatchEvent(
-        new Event("dashboard-update")
+      toast.success(
+        "Goal Updated"
       );
+
+
+
+      await loadGoals();
+
+      await loadProgress();
+
 
 
     } catch(error) {
 
-      toast.error("Failed to update goal");
+
+      console.log(error);
+
+      toast.error(
+        "Failed to update goal"
+      );
+
 
     }
+
 
   };
 
@@ -174,8 +315,7 @@ export function GoalProvider({ children }) {
 
 
 
-
-  const deleteGoal = async (id) => {
+  const deleteGoal = async(id)=>{
 
 
     try {
@@ -185,22 +325,26 @@ export function GoalProvider({ children }) {
 
 
 
-      toast.success("Goal Deleted");
-
-
-      loadGoals();
-
-
-      window.dispatchEvent(
-        new Event("dashboard-update")
+      toast.success(
+        "Goal Deleted"
       );
+
+
+
+      await loadGoals();
+
+      await loadProgress();
 
 
 
     } catch(error) {
 
 
-      toast.error("Failed to delete goal");
+      console.log(error);
+
+      toast.error(
+        "Failed to delete goal"
+      );
 
 
     }
@@ -211,55 +355,59 @@ export function GoalProvider({ children }) {
 
 
 
-  // ===========================
+
+  // ==========================
   // Summary
-  // ===========================
+  // ==========================
 
 
   const totalGoals = goals.length;
 
 
-
-  const activeGoals = goals.filter(
-
-    item => item.status === "Active"
-
-  ).length;
+  const activeGoals =
+    goals.filter(
+      item => item.status === "Active"
+    ).length;
 
 
-
-  const completedGoals = goals.filter(
-
-    item => item.status === "Completed"
-
-  ).length;
+  const completedGoals =
+    goals.filter(
+      item => item.status === "Completed"
+    ).length;
 
 
 
 
-  const overallProgress = useMemo(() => {
+
+  const overallProgress = useMemo(()=>{
 
 
-    const target = goals.reduce(
+    if(
+      goalProgress &&
+      goalProgress.progress !== undefined
+    ){
 
-      (sum,item) =>
+      return Number(goalProgress.progress);
 
-        sum + Number(item.targetAmount),
-
-      0
-
-    );
+    }
 
 
-    const saved = goals.reduce(
 
-      (sum,item) =>
+    const target =
+      goals.reduce(
+        (sum,item)=>
+          sum + Number(item.targetAmount || 0),
+        0
+      );
 
-        sum + Number(item.savedAmount),
 
-      0
 
-    );
+    const saved =
+      goals.reduce(
+        (sum,item)=>
+          sum + Number(item.savedAmount || 0),
+        0
+      );
 
 
 
@@ -272,63 +420,46 @@ export function GoalProvider({ children }) {
     return (saved / target) * 100;
 
 
-  },[goals]);
+
+  },[goals,goalProgress]);
 
 
 
 
 
-  // ===========================
-  // Filters
-  // ===========================
+  const filteredGoals = useMemo(()=>{
 
 
-  const filteredGoals = useMemo(() => {
-
-
-    return goals.filter(item => {
+    return goals.filter(item=>{
 
 
       const matchesSearch =
-
         item.title
-
           ?.toLowerCase()
-
-          .includes(search.toLowerCase());
+          .includes(
+            search.toLowerCase()
+          );
 
 
 
       const matchesPriority =
-
         priorityFilter === "All"
-
           ? true
-
           : item.priority === priorityFilter;
 
 
 
-
       const matchesStatus =
-
         statusFilter === "All"
-
           ? true
-
           : item.status === statusFilter;
 
 
 
-
       return (
-
         matchesSearch &&
-
         matchesPriority &&
-
         matchesStatus
-
       );
 
 
@@ -336,15 +467,10 @@ export function GoalProvider({ children }) {
 
 
   },[
-
     goals,
-
     search,
-
     priorityFilter,
-
     statusFilter
-
   ]);
 
 
@@ -353,12 +479,9 @@ export function GoalProvider({ children }) {
 
   return (
 
-
     <GoalContext.Provider
 
-
       value={{
-
 
         goals,
 
@@ -378,7 +501,10 @@ export function GoalProvider({ children }) {
 
         completedGoals,
 
+
         overallProgress,
+
+        goalProgress,
 
 
         search,
@@ -396,17 +522,19 @@ export function GoalProvider({ children }) {
         setStatusFilter,
 
 
+        loadGoals,
+
+        loadProgress,
+
+
       }}
 
-
     >
-
 
       {children}
 
 
     </GoalContext.Provider>
-
 
   );
 
@@ -415,4 +543,5 @@ export function GoalProvider({ children }) {
 
 
 
-export const useGoal = () => useContext(GoalContext);
+export const useGoal = () =>
+  useContext(GoalContext);

@@ -49,7 +49,7 @@ export default function GoalSummaryCards() {
 
         {
             title: "Progress",
-            value: `${overallProgress.toFixed(0)}%`,
+            value: `${Number(overallProgress || 0).toFixed(0)}%`,
             color: "bg-orange-500",
             bg: "bg-orange-50",
             icon: <FaChartLine />,

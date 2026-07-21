@@ -2,6 +2,7 @@ import { useEffect } from "react";
 
 import { useAuth } from "../context/AuthContext";
 import { useDashboard } from "../context/DashboardContext";
+import { useMonth } from "../context/MonthContext";
 
 import DashboardHeader from "../components/dashboard/DashboardHeader";
 import OverviewCards from "../components/dashboard/OverviewCards";
@@ -13,7 +14,9 @@ import RecentActivity from "../components/dashboard/RecentActivity";
 import AIQuickSummary from "../components/dashboard/AIQuickSummary";
 import SavingsProgressCard from "../components/dashboard/SavingsProgressCard";
 import FinancialSnapshot from "../components/dashboard/FinancialSnapshot";
-import { useMonth } from "../context/MonthContext";
+
+import PageTransition from "../components/animations/PageTransition";
+import FadeCard from "../components/animations/FadeCard";
 
 export default function Dashboard() {
 
@@ -21,52 +24,73 @@ export default function Dashboard() {
 
   const { user } = useAuth();
 
-  const {
-    summary,
-    fetchDashboard,
-  } = useDashboard();
+  const { fetchDashboard } = useDashboard();
 
   useEffect(() => {
-    fetchDashboard();
-  }, [fetchDashboard]);
+
+    fetchDashboard(selectedMonth);
+
+  }, [fetchDashboard, selectedMonth]);
 
   return (
 
-    <div className="space-y-8">
+    <PageTransition>
 
-      <DashboardHeader user={user} />
+      <div className="space-y-8">
 
-      <QuickActions />
+        <DashboardHeader user={user} />
 
-      <OverviewCards summary={summary} />
+        <FadeCard delay={0.05}>
+          <OverviewCards />
+        </FadeCard>
 
-      <FinancialSnapshot />
+        <FadeCard delay={0.10}>
+          <FinancialSnapshot />
+        </FadeCard>
 
-      <div className="grid xl:grid-cols-2 gap-8 mt-8">
+        <div className="grid xl:grid-cols-2 gap-8 mt-8">
 
-        <BudgetHealthCard />
+          <FadeCard delay={0.15}>
+            <BudgetHealthCard />
+          </FadeCard>
 
-        <SavingsProgressCard />
+          <FadeCard delay={0.20}>
+            <SavingsProgressCard />
+          </FadeCard>
+
+        </div>
+
+        <FadeCard delay={0.25}>
+          <QuickActions />
+        </FadeCard>
+
+        <div className="grid xl:grid-cols-2 gap-6">
+
+          <FadeCard delay={0.30}>
+            <MonthlyComparison />
+          </FadeCard>
+
+          <FadeCard delay={0.35}>
+            <TodaySummaryCard />
+          </FadeCard>
+
+        </div>
+
+        <div className="grid xl:grid-cols-2 gap-6">
+
+          <FadeCard delay={0.40}>
+            <RecentActivity />
+          </FadeCard>
+
+          <FadeCard delay={0.45}>
+            <AIQuickSummary />
+          </FadeCard>
+
+        </div>
 
       </div>
 
-      <div className="grid xl:grid-cols-2 gap-6">
-
-        <TodaySummaryCard />
-
-        <MonthlyComparison />
-
-      </div>
-
-      <div className="grid xl:grid-cols-2 gap-6">
-
-        <RecentActivity />
-
-        <AIQuickSummary />
-
-      </div>
-
-    </div>
+    </PageTransition>
 
   );
 

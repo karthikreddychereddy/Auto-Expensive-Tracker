@@ -1,4 +1,3 @@
-import { useMemo } from "react";
 import {
   ResponsiveContainer,
   LineChart,
@@ -7,70 +6,60 @@ import {
   YAxis,
   Tooltip,
   CartesianGrid,
+  Legend,
 } from "recharts";
 
-import { useBudget } from "../../context/BudgetContext";
+import { useInsights } from "../../context/InsightContext";
 
 export default function MonthlyTrendChart() {
 
-  const { selectedMonthExpenses } = useBudget();
+  const { monthlyTrend, loading } = useInsights();
 
-  const chartData = useMemo(() => {
+  if (loading) {
+    return (
+      <div className="bg-white rounded-2xl shadow border p-6 h-[400px] animate-pulse" />
+    );
+  }
 
-    const totals = {};
-
-    selectedMonthExpenses.forEach((expense) => {
-
-      const day = new Date(expense.date)
-        .toLocaleDateString("en-IN", {
-          day: "2-digit",
-          month: "short",
-        });
-
-      totals[day] =
-        (totals[day] || 0) +
-        Number(expense.amount);
-
-    });
-
-    return Object.entries(totals).map(([day, amount]) => ({
-      day,
-      amount,
-    }));
-
-  }, [selectedMonthExpenses]);
+  const data = monthlyTrend.map(item => ({
+    month: item.month,
+    income: Number(item.income),
+    expense: Number(item.expense),
+  }));
 
   return (
-
     <div className="bg-white rounded-2xl shadow border p-6 h-[400px]">
 
       <h2 className="text-2xl font-bold mb-6">
-
-        Monthly Spending Trend
-
+        Monthly Income vs Expense
       </h2>
 
       <ResponsiveContainer width="100%" height="90%">
 
-        <LineChart data={chartData}>
+        <LineChart data={data}>
 
           <CartesianGrid strokeDasharray="3 3" />
 
-          <XAxis dataKey="day" />
+          <XAxis dataKey="month" />
 
           <YAxis />
 
-          <Tooltip
-            formatter={(value) => [`₹${value}`, "Spent"]}
+          <Tooltip />
+
+          <Legend />
+
+          <Line
+            type="monotone"
+            dataKey="income"
+            stroke="#16A34A"
+            strokeWidth={3}
           />
 
           <Line
             type="monotone"
-            dataKey="amount"
-            stroke="#0B6B57"
+            dataKey="expense"
+            stroke="#DC2626"
             strokeWidth={3}
-            dot={{ r: 5 }}
-            activeDot={{ r: 7 }}
           />
 
         </LineChart>
@@ -78,7 +67,6 @@ export default function MonthlyTrendChart() {
       </ResponsiveContainer>
 
     </div>
-
   );
 
 }

@@ -3,6 +3,8 @@ import {
   FaCalendarDay,
 } from "react-icons/fa";
 
+import MonthSelector from "../common/MonthSelector";
+
 export default function DashboardHeader({ user }) {
 
   const today = new Date().toLocaleDateString("en-IN", {
@@ -48,7 +50,7 @@ export default function DashboardHeader({ user }) {
 
           <p className="text-gray-500 dark:text-gray-400 mt-3 text-lg">
 
-            Here's your financial overview for today.
+            Here's your financial overview.
 
           </p>
 
@@ -56,7 +58,7 @@ export default function DashboardHeader({ user }) {
 
         {/* Right */}
 
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col items-end gap-4">
 
           <div className="flex items-center gap-3 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 px-5 py-3 rounded-2xl transition-colors duration-300">
 

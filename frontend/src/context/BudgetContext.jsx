@@ -8,120 +8,261 @@ import {
 } from "react";
 
 import budgetService from "../services/budgetService";
+import { useAuth } from "./AuthContext";
+
 
 const BudgetContext = createContext(null);
 
+
 export function BudgetProvider({ children }) {
+
+  const { user } = useAuth();
+
+
   const [budgets, setBudgets] = useState([]);
+
   const [budgetStatus, setBudgetStatus] = useState([]);
+
   const [loading, setLoading] = useState(false);
+
   const [error, setError] = useState(null);
+
+
 
   // ===============================
   // Load Budgets
   // ===============================
 
   const fetchBudgets = useCallback(async () => {
+
+    if (!user) {
+
+      setBudgets([]);
+
+      return;
+
+    }
+
+
     try {
+
       setLoading(true);
 
-      const data = await budgetService.list();
+
+      const data =
+        await budgetService.list();
+
 
       setBudgets(data);
+
       setError(null);
+
+
     } catch (err) {
+
       console.error(err);
+
       setError("Failed to load budgets.");
-    } finally {
-      setLoading(false);
+
     }
-  }, []);
+
+    finally {
+
+      setLoading(false);
+
+    }
+
+
+  }, [user]);
+
+
+
 
   // ===============================
   // Load Budget Status
   // ===============================
 
   const fetchBudgetStatus = useCallback(async () => {
-    try {
-      const data = await budgetService.getStatus();
-      setBudgetStatus(data);
-    } catch (err) {
-      console.error(err);
+
+
+    if (!user) {
+
+      setBudgetStatus([]);
+
+      return;
+
     }
-  }, []);
+
+
+    try {
+
+
+      const data =
+        await budgetService.getStatus();
+
+
+      setBudgetStatus(data);
+
+
+    } catch (err) {
+
+      console.error(err);
+
+    }
+
+
+  }, [user]);
+
+
+
+
 
   // ===============================
   // Create Budget
   // ===============================
 
   const addBudget = async (payload) => {
+
     await budgetService.create(payload);
+
     await fetchBudgets();
+
     await fetchBudgetStatus();
+
   };
+
+
+
 
   // ===============================
   // Update Budget
   // ===============================
 
   const updateBudget = async (id, payload) => {
+
     await budgetService.update(id, payload);
+
     await fetchBudgets();
+
     await fetchBudgetStatus();
+
   };
+
+
+
+
 
   // ===============================
   // Delete Budget
   // ===============================
 
   const deleteBudget = async (id) => {
+
     await budgetService.delete(id);
+
     await fetchBudgets();
+
     await fetchBudgetStatus();
+
   };
 
+
+
+
+
   // ===============================
-  // Initial Load
+  // User Change Reload
   // ===============================
 
   useEffect(() => {
-    fetchBudgets();
-    fetchBudgetStatus();
-  }, [fetchBudgets, fetchBudgetStatus]);
 
-  // ===============================
-  // Provider Value
-  // ===============================
+
+    if(user){
+
+      fetchBudgets();
+
+      fetchBudgetStatus();
+
+    }
+    else{
+
+      setBudgets([]);
+
+      setBudgetStatus([]);
+
+    }
+
+
+  }, [
+    user,
+    fetchBudgets,
+    fetchBudgetStatus
+  ]);
+
+
+
+
 
   const value = useMemo(
+
     () => ({
+
       budgets,
+
       budgetStatus,
+
       loading,
+
       error,
 
+
       fetchBudgets,
+
       fetchBudgetStatus,
+
 
       addBudget,
+
       updateBudget,
+
       deleteBudget,
+
+
     }),
+
     [
+
       budgets,
+
       budgetStatus,
+
       loading,
+
       error,
+
       fetchBudgets,
+
       fetchBudgetStatus,
+
     ]
+
   );
+
+
 
   return (
+
     <BudgetContext.Provider value={value}>
+
       {children}
+
     </BudgetContext.Provider>
+
   );
+
 }
 
-export const useBudget = () => useContext(BudgetContext);
+
+
+export const useBudget = () =>
+  useContext(BudgetContext);

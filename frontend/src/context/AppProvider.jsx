@@ -1,7 +1,7 @@
 import { AuthProvider } from "./AuthContext";
 import { ExpenseProvider } from "./ExpenseContext";
 import { BudgetProvider } from "./BudgetContext";
-import { ReportProvider } from "./ReportContext";
+import { InsightProvider } from "./InsightContext";
 import { ModalProvider } from "./ModalContext";
 import { IncomeProvider } from "./IncomeContext";
 import { SavingsProvider } from "./SavingsContext";
@@ -13,65 +13,87 @@ import { ThemeProvider } from "./ThemeContext";
 import Dashboard from "../pages/Dashboard";
 import { DashboardProvider } from "./DashboardContext";
 import { MonthProvider } from "./MonthContext";
+import { UserProvider } from "./UserContext";
+import { SearchProvider } from "./SearchContext";
+import {NotificationProvider} from "./NotificationContext"
+import { NotificationSettingProvider } from "./NotificationSettingContext";
 
 export default function AppProvider({ children }) {
 
   return (
 
     <AuthProvider>
-      <MonthProvider>
 
-        <DashboardProvider>
+      <NotificationSettingProvider>
 
-          <ExpenseProvider>
+      <NotificationProvider>
 
-            <IncomeProvider>
+          <SearchProvider>
 
-              <SavingsProvider>
+            <UserProvider>
 
-                <CategoryProvider>
+              <MonthProvider>
 
-                  <GoalProvider>
+                <DashboardProvider>
 
-                    <ProfileProvider>
+                  <ExpenseProvider>
 
-                      <SettingsProvider>
+                    <IncomeProvider>
 
-                        <BudgetProvider>
+                      <SavingsProvider>
 
-                          <ReportProvider>
+                        <CategoryProvider>
 
-                            <ThemeProvider>
+                          <GoalProvider>
 
-                              <ModalProvider>
+                            <ProfileProvider>
 
-                                {children}
+                              <SettingsProvider>
 
-                              </ModalProvider>
+                                <BudgetProvider>
 
-                            </ThemeProvider>
+                                  <InsightProvider>
 
-                          </ReportProvider>
+                                    <ThemeProvider>
 
-                        </BudgetProvider>
+                                      <ModalProvider>
 
-                      </SettingsProvider>
+                                        {children}
 
-                    </ProfileProvider>
+                                      </ModalProvider>
 
-                  </GoalProvider>
+                                    </ThemeProvider>
 
-                </CategoryProvider>
+                                  </InsightProvider>
 
-              </SavingsProvider>
+                                </BudgetProvider>
 
-            </IncomeProvider>
+                              </SettingsProvider>
 
-          </ExpenseProvider>
+                            </ProfileProvider>
 
-        </DashboardProvider>
+                          </GoalProvider>
 
-      </MonthProvider>
+                        </CategoryProvider>
+
+                      </SavingsProvider>
+
+                    </IncomeProvider>
+
+                  </ExpenseProvider>
+
+                </DashboardProvider>
+
+              </MonthProvider>
+
+            </UserProvider>
+
+          </SearchProvider>
+
+        </NotificationProvider>
+
+        </NotificationSettingProvider>
+
     </AuthProvider>
 
   );

@@ -1,61 +1,42 @@
 import { useEffect, useState, useCallback } from "react";
 import toast from "react-hot-toast";
 
-
 export default function GoalForm({
-
     initial,
-
     onSubmit,
-
     registerSubmit,
-
 }) {
 
-
     const [form, setForm] = useState({
-
         goalName: "",
-
         targetAmount: "",
-
         savedAmount: "",
-
         targetDate: "",
-
     });
-
 
 
     useEffect(() => {
 
-
         if (initial) {
-
 
             setForm({
 
-                goalName: initial.goalName || "",
+                goalName: initial.goalName || initial.title || "",
 
                 targetAmount: initial.targetAmount || "",
 
                 savedAmount: initial.savedAmount || "",
 
-                targetDate: initial.targetDate || "",
+                targetDate: initial.targetDate || initial.deadline || "",
 
             });
 
-
         }
-
 
     }, [initial]);
 
 
-
-
     const handleChange = (e) => {
-
 
         setForm(prev => ({
 
@@ -65,41 +46,28 @@ export default function GoalForm({
 
         }));
 
-
     };
-
-
-
 
 
     const handleSubmit = useCallback(() => {
 
 
-
         if (!form.goalName.trim()) {
-
 
             toast.error("Please enter goal name");
 
             return;
 
-
         }
 
 
-
-
         if (!form.targetAmount || Number(form.targetAmount) <= 0) {
-
 
             toast.error("Enter valid target amount");
 
             return;
 
-
         }
-
-
 
 
         if (
@@ -107,15 +75,11 @@ export default function GoalForm({
             Number(form.savedAmount) < 0
         ) {
 
-
             toast.error("Saved amount cannot be negative");
 
             return;
 
-
         }
-
-
 
 
         onSubmit({
@@ -125,11 +89,8 @@ export default function GoalForm({
             targetAmount: Number(form.targetAmount),
 
             savedAmount:
-
                 form.savedAmount === ""
-
                     ? 0
-
                     : Number(form.savedAmount),
 
             targetDate: form.targetDate,
@@ -137,46 +98,26 @@ export default function GoalForm({
         });
 
 
-
     }, [form, onSubmit]);
-
-
-
 
 
     useEffect(() => {
 
-
         registerSubmit?.(() => handleSubmit);
-
 
     }, [handleSubmit, registerSubmit]);
 
 
-
-
-
-
     return (
-
-
 
         <div className="p-8 grid md:grid-cols-2 gap-6">
 
 
-
-
-
             <div>
 
-
                 <label className="block font-medium mb-2">
-
                     Goal Name
-
                 </label>
-
-
 
                 <input
 
@@ -192,23 +133,14 @@ export default function GoalForm({
 
                 />
 
-
             </div>
-
-
-
 
 
             <div>
 
-
                 <label className="block font-medium mb-2">
-
                     Target Amount
-
                 </label>
-
-
 
                 <input
 
@@ -224,24 +156,14 @@ export default function GoalForm({
 
                 />
 
-
             </div>
-
-
-
-
 
 
             <div>
 
-
                 <label className="block font-medium mb-2">
-
                     Saved Amount
-
                 </label>
-
-
 
                 <input
 
@@ -257,25 +179,14 @@ export default function GoalForm({
 
                 />
 
-
             </div>
-
-
-
-
-
 
 
             <div>
 
-
                 <label className="block font-medium mb-2">
-
                     Target Date
-
                 </label>
-
-
 
                 <input
 
@@ -291,16 +202,11 @@ export default function GoalForm({
 
                 />
 
-
             </div>
-
-
 
 
         </div>
 
-
     );
-
 
 }

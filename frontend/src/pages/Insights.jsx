@@ -1,40 +1,31 @@
-import AnalyticsDashboard from "../components/analytics/AnalyticsDashboard";
+import { useEffect } from "react";
 
-import ExpenseBarChart from "../components/reports/ExpenseBarChart";
-import ExpensePieChart from "../components/reports/ExpensePieChart";
-import DailyComparison from "../components/reports/DailyComparison";
-import RecentTransactions from "../components/reports/RecentTransactions";
+import { useInsights } from "../context/InsightContext";
+
+import AnalyticsDashboard from "../components/analytics/AnalyticsDashboard";
+import ExpenseBarChart from "../components/analytics/ExpenseBarChart";
+import DailyComparison from "../components/analytics/DailyComparison";
+import RecentTransactions from "../components/analytics/RecentTransactions";
 import ExpenseTrend from "../components/dashboard/ExpenseTrend";
+import PageTransition from "../components/animations/PageTransition";
 
 export default function Insights() {
 
+  const { fetchInsights } = useInsights();
+
+  useEffect(() => {
+
+    fetchInsights();
+
+  }, [fetchInsights]);
+
   return (
+
+    <PageTransition>
 
     <div className="space-y-10">
 
-      {/* Header */}
-
-      {/* <div>
-
-        <h1 className="text-4xl font-bold text-gray-800">
-
-          Financial Insights
-
-        </h1>
-
-        <p className="text-gray-500 mt-2">
-
-          Analyze your spending, budgets, trends and AI recommendations in one place.
-
-        </p>
-
-      </div> */}
-
-      {/* ================= Analytics Section ================= */}
-
       <AnalyticsDashboard />
-
-      {/* ================= Reports Section ================= */}
 
       <div>
 
@@ -47,9 +38,8 @@ export default function Insights() {
         <div className="grid lg:grid-cols-2 gap-6">
 
           <ExpenseBarChart />
-          <ExpenseTrend />
 
-          {/* <ExpensePieChart /> */}
+          <ExpenseTrend />
 
         </div>
 
@@ -59,19 +49,9 @@ export default function Insights() {
 
       <RecentTransactions />
 
-      {/* ================= Additional Charts ================= */}
-
-      {/* <div className="grid lg:grid-cols-2 gap-6">
-
-        <PaymentMethodChart />
-
-      </div> */}
-
-      {/* ================= Budget Alerts ================= */}
-
-      {/* <BudgetAlerts /> */}
-
     </div>
+
+    </PageTransition>
 
   );
 

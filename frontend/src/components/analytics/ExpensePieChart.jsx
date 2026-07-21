@@ -1,6 +1,12 @@
-import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts";
-import { useMemo } from "react";
-import { useBudget } from "../../context/BudgetContext";
+import {
+  PieChart,
+  Pie,
+  Cell,
+  Tooltip,
+  ResponsiveContainer,
+} from "recharts";
+
+import { useInsights } from "../../context/InsightContext";
 
 const COLORS = [
   "#0B6B57",
@@ -14,26 +20,22 @@ const COLORS = [
 
 export default function ExpensePieChart() {
 
-  const { selectedMonthExpenses } = useBudget();
+  const { categoryBreakdown, loading } = useInsights();
 
-  const data = useMemo(() => {
+  if (loading) {
 
-    const totals = {};
+    return (
+      <div className="bg-white rounded-2xl shadow border p-6 h-[400px] animate-pulse" />
+    );
 
-    selectedMonthExpenses.forEach((expense) => {
+  }
 
-      totals[expense.category] =
-        (totals[expense.category] || 0) +
-        Number(expense.amount);
+  const data = categoryBreakdown.map(item => ({
 
-    });
+    name: item.category,
+    value: Number(item.amount),
 
-    return Object.entries(totals).map(([name, value]) => ({
-      name,
-      value,
-    }));
-
-  }, [selectedMonthExpenses]);
+  }));
 
   return (
 

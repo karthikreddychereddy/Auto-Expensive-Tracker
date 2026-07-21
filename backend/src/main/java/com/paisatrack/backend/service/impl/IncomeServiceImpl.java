@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import com.paisatrack.backend.entity.User;
 import com.paisatrack.backend.util.SecurityUtil;
+import java.time.YearMonth;
 
 import java.util.List;
 
@@ -24,6 +25,10 @@ public class IncomeServiceImpl implements IncomeService {
     public IncomeResponse addIncome(IncomeRequest request) {
 
         String email = SecurityUtil.getCurrentUserEmail();
+
+        if(email == null){
+        throw new RuntimeException("Unauthorized user");
+        }
 
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
@@ -51,7 +56,7 @@ public class IncomeServiceImpl implements IncomeService {
     }
 
     @Override
-    public List<IncomeResponse> getAllIncome() {
+    public List<IncomeResponse> getAllIncome(String month) {
 
         String email = SecurityUtil.getCurrentUserEmail();
 
@@ -59,6 +64,17 @@ public class IncomeServiceImpl implements IncomeService {
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         List<Income> incomes = incomeRepository.findByUser(user);
+
+        if (month != null && !month.isBlank()) {
+
+        YearMonth ym = YearMonth.parse(month);
+
+        incomes = incomes.stream()
+                .filter(i ->
+                        YearMonth.from(i.getIncomeDate())
+                                .equals(ym))
+                .toList();
+        }
 
         return incomes.stream()
                 .map(income -> IncomeResponse.builder()

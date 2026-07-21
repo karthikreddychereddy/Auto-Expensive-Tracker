@@ -1,10 +1,10 @@
 package com.paisatrack.backend.dto;
 
-import lombok.Builder;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 
 @Data
-@Builder
+@AllArgsConstructor
 public class UserResponse {
 
     private Long id;
@@ -24,4 +24,5 @@ public class UserResponse {
     private String language;
 
     private String role;
+
 }

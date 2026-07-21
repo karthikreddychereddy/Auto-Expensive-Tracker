@@ -1,10 +1,21 @@
-import { createContext, useContext, useState, useCallback } from "react";
+import {
+  createContext,
+  useContext,
+  useState,
+  useCallback,
+  useEffect,
+} from "react";
 
 import { dashboardService } from "../services/dashboardService";
+import { useAuth } from "./AuthContext";
+import { useMonth } from "./MonthContext";
 
 const DashboardContext = createContext(null);
 
 export function DashboardProvider({ children }) {
+
+  const { user } = useAuth();
+  const { selectedMonth } = useMonth();
 
   const [summary, setSummary] = useState(null);
 
@@ -18,52 +29,143 @@ export function DashboardProvider({ children }) {
 
   const [loading, setLoading] = useState(false);
 
-  const fetchDashboard = useCallback(async () => {
+  // ==========================================
+  // Clear Dashboard
+  // ==========================================
+
+  const clearDashboard = () => {
+
+    setSummary(null);
+    setRecentTransactions([]);
+    setCategorySummary([]);
+    setMonthlySummary([]);
+    setWeeklySummary([]);
+
+  };
+
+  // ==========================================
+  // Fetch Dashboard
+  // ==========================================
+
+  const fetchDashboard = useCallback(async (month = selectedMonth) => {
+
+    if (!user) {
+
+      clearDashboard();
+      return;
+
+    }
 
     try {
 
-        setLoading(true);
+      setLoading(true);
 
-        const [
-        summary,
+      const [
+
+        summaryData,
         recent,
         category,
         monthly,
         weekly,
-        ] = await Promise.all([
 
-        dashboardService.summary(),
-        dashboardService.recentTransactions(),
-        dashboardService.categorySummary(),
-        dashboardService.monthlySummary(),
-        dashboardService.weeklySummary(),
+      ] = await Promise.all([
 
-        ]);
+        dashboardService.summary(month),
 
-        console.log("Dashboard Summary:", summary);
+        dashboardService.recentTransactions(month),
 
-        setSummary(summary);
-        setRecentTransactions(recent);
-        setCategorySummary(category);
-        setMonthlySummary(monthly);
-        setWeeklySummary(weekly);
+        dashboardService.categorySummary(month),
 
-    } catch (err) {
+        dashboardService.monthlySummary(month),
 
-        console.error("Dashboard Error:", err);
+        dashboardService.weeklySummary(month),
 
-    } finally {
+      ]);
 
-        setLoading(false);
+      setSummary(summaryData);
+
+      setRecentTransactions(recent);
+
+      setCategorySummary(category);
+
+      setMonthlySummary(monthly);
+
+      setWeeklySummary(weekly);
 
     }
 
-    }, []);
+    catch (err) {
+
+      console.error("Dashboard Error:", err);
+
+    }
+
+    finally {
+
+      setLoading(false);
+
+    }
+
+  }, [user, selectedMonth]);
+
+  // ==========================================
+  // Reload when Month Changes
+  // ==========================================
+
+  useEffect(() => {
+
+    if (user) {
+
+      fetchDashboard(selectedMonth);
+
+    }
+
+    else {
+
+      clearDashboard();
+
+    }
+
+  }, [
+    user,
+    selectedMonth,
+    fetchDashboard,
+  ]);
+
+  // ==========================================
+  // Refresh After CRUD
+  // ==========================================
+
+  useEffect(() => {
+
+    const handleDashboardUpdate = () => {
+
+      fetchDashboard(selectedMonth);
+
+    };
+
+    window.addEventListener(
+      "dashboard-update",
+      handleDashboardUpdate
+    );
+
+    return () => {
+
+      window.removeEventListener(
+        "dashboard-update",
+        handleDashboardUpdate
+      );
+
+    };
+
+  }, [
+    fetchDashboard,
+    selectedMonth,
+  ]);
 
   return (
 
     <DashboardContext.Provider
-
       value={{
 
         summary,
@@ -81,7 +183,6 @@ export function DashboardProvider({ children }) {
         fetchDashboard,
 
       }}
-
     >
 
       {children}
@@ -92,4 +193,5 @@ export function DashboardProvider({ children }) {
 
 }
 
-export const useDashboard = () => useContext(DashboardContext);
+export const useDashboard = () =>
+  useContext(DashboardContext);

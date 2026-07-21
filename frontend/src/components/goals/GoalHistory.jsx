@@ -58,13 +58,13 @@ export default function GoalHistory() {
 
                                 <td className="text-center">
 
-                                    ₹{item.savedAmount.toLocaleString()}
+                                    ₹{Number(item.savedAmount || 0).toLocaleString()}
 
                                 </td>
 
                                 <td className="text-center">
 
-                                    ₹{item.targetAmount.toLocaleString()}
+                                    ₹{Number(item.targetAmount || 0).toLocaleString()}
 
                                 </td>
 

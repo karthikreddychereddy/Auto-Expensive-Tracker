@@ -8,25 +8,20 @@ import {
 
 import toast from "react-hot-toast";
 
-import { initialIncome } from "../data/income";
 import { incomeService } from "../services/expenseService";
-
+import { useAuth } from "./AuthContext";
+import { useMonth } from "./MonthContext";
 
 const IncomeContext = createContext(null);
 
 
 export function IncomeProvider({ children }) {
 
+  const { user } = useAuth();
+  const { selectedMonth } = useMonth();
 
-  const [income, setIncome] = useState(() => {
-
-    const saved = localStorage.getItem("income");
-
-    return saved
-      ? JSON.parse(saved)
-      : initialIncome;
-
-  });
+  const [income, setIncome] = useState([]);
+  const [filteredIncome, setFilteredIncome] = useState([]);
 
 
 
@@ -36,56 +31,52 @@ export function IncomeProvider({ children }) {
 
   useEffect(() => {
 
-
     const fetchIncome = async () => {
 
-      try {
+    if (!user) {
 
-        const data = await incomeService.list();
+      setIncome([]);
+      setFilteredIncome([]);
+      return;
 
+    }
 
-        const mapped = data.map((item) => ({
+    try {
 
+      const allData = await incomeService.list();
+
+      const monthData = await incomeService.list({
+        month: selectedMonth,
+      });
+
+      const mapIncome = (data) =>
+        data.map((item) => ({
           id: item.id,
-
           amount: item.amount,
-
           category: item.category,
-
           source: item.source,
-
           description: item.description,
-
           incomeDate: item.incomeDate,
-
           transactionType: item.transactionType,
-
         }));
 
+      setIncome(mapIncome(allData));
 
-        setIncome(mapped);
+      setFilteredIncome(mapIncome(monthData));
 
+    } catch (err) {
 
-      } catch (err) {
+      console.error("Failed to fetch income:", err);
 
-        console.error(
-          "Failed to fetch income:",
-          err
-        );
+    }
 
-      }
-
-    };
+  };
 
 
     fetchIncome();
 
 
-  }, []);
-
-
-
-
+  }, [user, selectedMonth]);
 
   // =========================
   // Search & Filters
@@ -94,29 +85,14 @@ export function IncomeProvider({ children }) {
 
   const [search, setSearch] = useState("");
 
-  const [sourceFilter, setSourceFilter] = useState("All");
+  const [sourceFilter, setSourceFilter] =
+    useState("All");
 
-  const [dateFilter, setDateFilter] = useState("All");
+  const [dateFilter, setDateFilter] =
+    useState("All");
 
-  const [sortBy, setSortBy] = useState("newest");
-
-
-
-
-
-  // =========================
-  // Local Storage
-  // =========================
-
-
-  useEffect(() => {
-
-    localStorage.setItem(
-      "income",
-      JSON.stringify(income)
-    );
-
-  }, [income]);
+  const [sortBy, setSortBy] =
+    useState("newest");
 
 
 
@@ -128,6 +104,7 @@ export function IncomeProvider({ children }) {
 
 
   const addIncome = async (payload) => {
+
 
     try {
 
@@ -176,9 +153,9 @@ export function IncomeProvider({ children }) {
       window.dispatchEvent(
         new Event("dashboard-update")
       );
-
-
-
+      window.dispatchEvent(
+        new Event("dashboard-update")
+      );
     } catch (err) {
 
 
@@ -219,6 +196,7 @@ export function IncomeProvider({ children }) {
 
         prev.map((item) =>
 
+
           item.id === id
 
           ? {
@@ -240,6 +218,7 @@ export function IncomeProvider({ children }) {
             }
 
           : item
+
 
         )
 
@@ -323,7 +302,7 @@ export function IncomeProvider({ children }) {
   const totalIncome = useMemo(() => {
 
 
-    return income.reduce(
+    return filteredIncome.reduce(
 
       (sum, item) =>
 
@@ -334,7 +313,7 @@ export function IncomeProvider({ children }) {
     );
 
 
-  }, [income]);
+  }, [filteredIncome]);
 
 
 
@@ -345,12 +324,15 @@ export function IncomeProvider({ children }) {
   // =========================
 
 
-  const filteredIncome = useMemo(() => {
-
-    let filtered = income.filter((item) => {
+  const searchedIncome = useMemo(() => {
 
 
-      const searchText = search.toLowerCase();
+    let filtered = filteredIncome.filter((item) => {
+
+
+      const searchText =
+        search.toLowerCase();
+
 
 
       const matchesSearch =
@@ -377,112 +359,9 @@ export function IncomeProvider({ children }) {
 
         sourceFilter === "All"
 
-          ? true
+        ? true
 
-          : item.source === sourceFilter;
-
-
-
-      let matchesDate = true;
-
-
-
-      if(item.incomeDate){
-
-
-        const itemDate =
-          new Date(item.incomeDate);
-
-
-        const today =
-          new Date();
-
-
-
-        if(dateFilter === "Today") {
-
-
-          matchesDate =
-
-            itemDate.toDateString()
-
-            ===
-
-            today.toDateString();
-
-
-        }
-
-
-        else if(dateFilter === "This Month"){
-
-
-          matchesDate =
-
-            itemDate.getMonth()
-            ===
-            today.getMonth()
-
-            &&
-
-            itemDate.getFullYear()
-            ===
-            today.getFullYear();
-
-
-        }
-
-
-        else if(dateFilter === "Last Month"){
-
-
-          const lastMonth =
-            new Date();
-
-
-          lastMonth.setMonth(
-            today.getMonth() - 1
-          );
-
-
-          matchesDate =
-
-            itemDate.getMonth()
-            ===
-            lastMonth.getMonth()
-
-            &&
-
-            itemDate.getFullYear()
-            ===
-            lastMonth.getFullYear();
-
-
-        }
-
-
-        else if(dateFilter === "This Week"){
-
-
-          const diff =
-
-            (today - itemDate)
-
-            /
-
-            (1000 * 60 * 60 * 24);
-
-
-
-          matchesDate =
-
-            diff >= 0 && diff <= 7;
-
-
-        }
-
-
-      }
+        : item.source === sourceFilter;
 
 
 
@@ -493,10 +372,6 @@ export function IncomeProvider({ children }) {
         &&
 
         matchesSource
-
-        &&
-
-        matchesDate
 
       );
 
@@ -513,58 +388,33 @@ export function IncomeProvider({ children }) {
 
         case "oldest":
 
-          return (
-
-            new Date(a.incomeDate)
-
-            -
-
-            new Date(b.incomeDate)
-
-          );
+          return new Date(a.incomeDate)
+          -
+          new Date(b.incomeDate);
 
 
 
         case "highest":
 
-          return (
-
-            Number(b.amount)
-
-            -
-
-            Number(a.amount)
-
-          );
+          return Number(b.amount)
+          -
+          Number(a.amount);
 
 
 
         case "lowest":
 
-          return (
-
-            Number(a.amount)
-
-            -
-
-            Number(b.amount)
-
-          );
+          return Number(a.amount)
+          -
+          Number(b.amount);
 
 
 
         default:
 
-          return (
-
-            new Date(b.incomeDate)
-
-            -
-
-            new Date(a.incomeDate)
-
-          );
-
+          return new Date(b.incomeDate)
+          -
+          new Date(a.incomeDate);
 
       }
 
@@ -580,9 +430,10 @@ export function IncomeProvider({ children }) {
     income,
     search,
     sourceFilter,
-    dateFilter,
     sortBy
   ]);
+
+
 
   return (
 
@@ -592,8 +443,7 @@ export function IncomeProvider({ children }) {
 
         income,
 
-        filteredIncome,
-
+        filteredIncome : searchedIncome,
 
         addIncome,
 
@@ -601,29 +451,23 @@ export function IncomeProvider({ children }) {
 
         deleteIncome,
 
-
         totalIncome,
-
 
         search,
 
         setSearch,
 
-
         sourceFilter,
 
         setSourceFilter,
-
 
         dateFilter,
 
         setDateFilter,
 
-
         sortBy,
 
         setSortBy,
-
 
       }}
 
@@ -631,15 +475,11 @@ export function IncomeProvider({ children }) {
 
       {children}
 
-
     </IncomeContext.Provider>
-
 
   );
 
-
 }
-
 
 
 

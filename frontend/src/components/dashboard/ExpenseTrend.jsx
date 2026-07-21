@@ -5,68 +5,40 @@ import {
   Tooltip,
   ResponsiveContainer,
   CartesianGrid,
+  YAxis,
 } from "recharts";
 
-import { useMemo } from "react";
-import { useExpenses } from "../../context/ExpenseContext";
+import { useInsights } from "../../context/InsightContext";
 
 export default function ExpenseTrend() {
 
-  const { expenses } = useExpenses();
+  const { weeklyExpense, loading } = useInsights();
 
-  const data = useMemo(() => {
+  if (loading) {
+    return (
+      <div className="bg-white rounded-2xl shadow border p-6 h-[420px] animate-pulse" />
+    );
+  }
 
-    const last7 = [];
-
-    for (let i = 6; i >= 0; i--) {
-
-      const d = new Date();
-
-      d.setDate(d.getDate() - i);
-
-      const date = d.toISOString().slice(0, 10);
-
-      const label = d.toLocaleDateString("en-IN", {
-        weekday: "short",
-      });
-
-      const total = expenses
-        .filter(
-          expense =>
-            expense.date === date &&
-            expense.transactionType !== "Income"
-        )
-        .reduce(
-          (sum, expense) =>
-            sum + Number(expense.amount),
-          0
-        );
-
-      last7.push({
-
-        day: label,
-
-        amount: total,
-
-      });
-
-    }
-
-    return last7;
-
-  }, [expenses]);
+  const data = weeklyExpense.map(item => ({
+    week: item.week,
+    amount: Number(item.totalExpense),
+  }));
 
   const weeklyTotal = data.reduce(
     (sum, item) => sum + item.amount,
     0
   );
 
-  const highestDay = Math.max(
-    ...data.map(item => item.amount)
+  const highestWeek = Math.max(
+    ...data.map(item => item.amount),
+    0
   );
 
   const average =
-    weeklyTotal / 7;
+    data.length > 0
+      ? weeklyTotal / data.length
+      : 0;
 
   return (
 
@@ -78,15 +50,9 @@ export default function ExpenseTrend() {
 
           <h2 className="text-xl font-bold">
 
-            Expense Trend
+            Weekly Expense Trend
 
           </h2>
-
-          <p className="text-gray-500">
-
-            Last 7 Days
-
-          </p>
 
         </div>
 
@@ -100,7 +66,7 @@ export default function ExpenseTrend() {
 
           <p className="text-sm text-gray-500">
 
-            Weekly Total
+            Total
 
           </p>
 
@@ -108,25 +74,23 @@ export default function ExpenseTrend() {
 
       </div>
 
-      <ResponsiveContainer
-        width="100%"
-        height={250}
-      >
+      <ResponsiveContainer width="100%" height={250}>
 
         <LineChart data={data}>
 
-          <CartesianGrid strokeDasharray="3 3"/>
+          <CartesianGrid strokeDasharray="3 3" />
 
-          <XAxis dataKey="day"/>
+          <XAxis dataKey="week" />
 
-          <Tooltip/>
+          <YAxis />
+
+          <Tooltip />
 
           <Line
             type="monotone"
             dataKey="amount"
             stroke="#0B6B57"
             strokeWidth={4}
-            dot={{ r: 5 }}
           />
 
         </LineChart>
@@ -139,13 +103,13 @@ export default function ExpenseTrend() {
 
           <p className="text-gray-500 text-sm">
 
-            Highest Day
+            Highest Week
 
           </p>
 
           <h3 className="font-bold">
 
-            ₹{highestDay.toLocaleString()}
+            ₹{highestWeek.toLocaleString()}
 
           </h3>
 
@@ -155,7 +119,7 @@ export default function ExpenseTrend() {
 
           <p className="text-gray-500 text-sm">
 
-            Daily Average
+            Weekly Average
 
           </p>
 

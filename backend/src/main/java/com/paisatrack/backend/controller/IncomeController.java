@@ -25,9 +25,10 @@ public class IncomeController {
     }
 
     @GetMapping
-    public List<IncomeResponse> getAllIncome() {
+    public List<IncomeResponse> getAllIncome(
+            @RequestParam(required = false) String month) {
 
-        return incomeService.getAllIncome();
+        return incomeService.getAllIncome(month);
     }
 
     @GetMapping("/{id}")

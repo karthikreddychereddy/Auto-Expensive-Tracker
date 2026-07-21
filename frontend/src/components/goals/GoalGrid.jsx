@@ -49,9 +49,10 @@ export default function GoalGrid() {
 
                     const percentage = Math.min(
 
-                        (item.savedAmount /
-
-                        item.targetAmount) * 100,
+                        item.targetAmount > 0
+                            ? (Number(item.savedAmount || 0) /
+                            Number(item.targetAmount)) * 100
+                            : 0,
 
                         100
 

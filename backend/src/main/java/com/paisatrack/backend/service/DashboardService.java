@@ -1,8 +1,8 @@
 package com.paisatrack.backend.service;
 
-import com.paisatrack.backend.dto.CategoryExpenseResponse;
+import com.paisatrack.backend.dto.CategoryBreakdownResponse;
 import com.paisatrack.backend.dto.DashboardSummaryResponse;
-import com.paisatrack.backend.dto.MonthlySummaryResponse;
+import com.paisatrack.backend.dto.MonthlyTrendResponse;
 import com.paisatrack.backend.dto.RecentTransactionResponse;
 import com.paisatrack.backend.dto.WeeklyExpenseResponse;
 
@@ -10,13 +10,14 @@ import java.util.List;
 
 public interface DashboardService {
 
-    DashboardSummaryResponse getDashboardSummary();
+    DashboardSummaryResponse getDashboardSummary(String month);
 
-    List<RecentTransactionResponse> getRecentTransactions();
+    List<RecentTransactionResponse> getRecentTransactions(String month);
 
-    List<CategoryExpenseResponse> getCategoryWiseExpenses();
+    List<CategoryBreakdownResponse> getCategoryWiseExpenses(String month);
 
-    List<MonthlySummaryResponse> getMonthlySummary();
+    List<MonthlyTrendResponse> getMonthlySummary();
 
-    List<WeeklyExpenseResponse> getWeeklyExpenseSummary();
+    List<WeeklyExpenseResponse> getWeeklyExpenseSummary(String month);
+
 }
