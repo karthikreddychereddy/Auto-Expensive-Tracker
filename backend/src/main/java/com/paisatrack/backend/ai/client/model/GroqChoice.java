@@ -1,0 +1,14 @@
+package com.paisatrack.backend.ai.client.model;
+
+public class GroqChoice {
+
+    private GroqMessage message;
+
+    public GroqMessage getMessage() {
+        return message;
+    }
+
+    public void setMessage(GroqMessage message) {
+        this.message = message;
+    }
+}
