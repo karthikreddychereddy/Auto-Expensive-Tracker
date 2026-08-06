@@ -7,13 +7,19 @@ import org.springframework.stereotype.Component;
 public class PromptBuilder {
 
     public String buildPrompt(FinancialContext context, String question) {
+        return buildPrompt(context, "", question);
+    }
+
+    public String buildPrompt(FinancialContext context,
+                              String conversationHistory,
+                              String question) {
 
         StringBuilder prompt = new StringBuilder();
 
         prompt.append("""
 You are PaisaTrack AI Advisor.
 
-You are an AI financial assistant.
+You are an intelligent personal finance assistant.
 
 Always answer using ONLY the authenticated user's financial information.
 
@@ -25,7 +31,9 @@ Never invent transactions.
 
 Never assume missing information.
 
-If data is unavailable, clearly mention it.
+If information is unavailable, clearly state that.
+
+Use the previous conversation whenever it is relevant.
 
 Provide practical, personalized financial advice.
 
@@ -87,11 +95,27 @@ GOALS
 
         appendGoal(prompt, context.getGoal());
 
+        if (conversationHistory != null && !conversationHistory.isBlank()) {
+
+            prompt.append("""
+
+======================================================
+
+CONVERSATION HISTORY
+
+""");
+
+            prompt.append(conversationHistory);
+
+            prompt.append("\n");
+
+        }
+
         prompt.append("""
 
 ======================================================
 
-USER QUESTION
+CURRENT USER QUESTION
 
 """);
 

@@ -17,12 +17,15 @@ import { UserProvider } from "./UserContext";
 import { SearchProvider } from "./SearchContext";
 import {NotificationProvider} from "./NotificationContext"
 import { NotificationSettingProvider } from "./NotificationSettingContext";
+import { AIProvider } from "./AIContext";
 
 export default function AppProvider({ children }) {
 
   return (
 
     <AuthProvider>
+
+      <AIProvider>
 
       <NotificationSettingProvider>
 
@@ -93,6 +96,8 @@ export default function AppProvider({ children }) {
         </NotificationProvider>
 
         </NotificationSettingProvider>
+
+        </AIProvider>
 
     </AuthProvider>
 

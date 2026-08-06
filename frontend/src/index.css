@@ -2,13 +2,81 @@
 @tailwind components;
 @tailwind utilities;
 
-html, body, #root { height: 100%; }
-body { @apply text-slate-800 antialiased; }
+/* ===========================
+   GLOBAL LAYOUT
+=========================== */
+
+html,
+body,
+#root {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+body {
+  @apply bg-slate-50 text-slate-800 antialiased;
+}
+
+/* Smooth scrolling */
+
+html {
+  scroll-behavior: smooth;
+}
+
+/* ===========================
+   HIDE SCROLLBARS
+=========================== */
+
+* {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+*::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none;
+}
+
+/* ===========================
+   TEXT SELECTION
+=========================== */
+
+::selection {
+  @apply bg-blue-500 text-white;
+}
+
+/* ===========================
+   INPUTS
+=========================== */
+
+input,
+textarea,
+button,
+select {
+  font: inherit;
+}
+
+textarea {
+  resize: none;
+}
+
+/* Remove blue tap highlight */
+
+button,
+a {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* ===========================
+   ANIMATIONS
+=========================== */
 
 @keyframes popup {
   0% {
     opacity: 0;
-    transform: translateY(30px) scale(.95);
+    transform: translateY(30px) scale(0.95);
   }
 
   100% {
@@ -17,16 +85,67 @@ body { @apply text-slate-800 antialiased; }
   }
 }
 
+.animate-popup {
+  animation: popup 0.3s ease;
+}
+
 @keyframes fadeIn {
   from {
     opacity: 0;
+    transform: translateY(12px);
   }
 
   to {
     opacity: 1;
+    transform: translateY(0);
   }
 }
 
 .animate-fadeIn {
-  animation: fadeIn .25s ease;
+  animation: fadeIn 0.25s ease;
+}
+
+/* ===========================
+   CHATGPT STYLE PROSE
+=========================== */
+
+.prose {
+  max-width: none;
+}
+
+.prose pre {
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.prose code {
+  font-size: 0.92em;
+}
+
+.prose table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.prose table th,
+.prose table td {
+  padding: 10px;
+  border: 1px solid rgb(226 232 240);
+}
+
+.prose blockquote {
+  border-left: 4px solid rgb(59 130 246);
+  padding-left: 16px;
+  color: rgb(71 85 105);
+}
+
+/* ===========================
+   TRANSITIONS
+=========================== */
+
+* {
+  transition:
+    background-color .2s ease,
+    border-color .2s ease,
+    color .2s ease;
 }

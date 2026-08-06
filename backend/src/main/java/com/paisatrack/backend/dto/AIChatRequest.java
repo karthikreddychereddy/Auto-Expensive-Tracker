@@ -7,12 +7,12 @@ public class AIChatRequest {
     @NotBlank(message = "Message cannot be empty")
     private String message;
 
-    private String conversationId;
+    private Long conversationId;
 
     public AIChatRequest() {
     }
 
-    public AIChatRequest(String message, String conversationId) {
+    public AIChatRequest(String message, Long conversationId) {
         this.message = message;
         this.conversationId = conversationId;
     }
@@ -25,11 +25,12 @@ public class AIChatRequest {
         this.message = message;
     }
 
-    public String getConversationId() {
+    public Long getConversationId() {
         return conversationId;
     }
 
-    public void setConversationId(String conversationId) {
+    public void setConversationId(Long conversationId) {
         this.conversationId = conversationId;
     }
+
 }
