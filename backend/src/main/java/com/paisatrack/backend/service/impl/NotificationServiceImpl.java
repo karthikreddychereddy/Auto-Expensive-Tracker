@@ -6,10 +6,11 @@ import com.paisatrack.backend.dto.NotificationSettingResponse;
 import com.paisatrack.backend.entity.Notification;
 import com.paisatrack.backend.entity.NotificationSetting;
 import com.paisatrack.backend.entity.NotificationType;
+import com.paisatrack.backend.entity.Settings;
 import com.paisatrack.backend.entity.User;
-import com.paisatrack.backend.repository.ExpenseRepository;
 import com.paisatrack.backend.repository.NotificationRepository;
 import com.paisatrack.backend.repository.NotificationSettingRepository;
+import com.paisatrack.backend.repository.SettingsRepository;
 import com.paisatrack.backend.repository.UserRepository;
 import com.paisatrack.backend.service.NotificationService;
 import com.paisatrack.backend.util.SecurityUtil;
@@ -29,223 +30,327 @@ import java.util.List;
 @Transactional
 public class NotificationServiceImpl implements NotificationService {
 
-    private final NotificationRepository notificationRepository;
+        private final NotificationRepository notificationRepository;
 
-    private final NotificationSettingRepository settingRepository;
+        private final NotificationSettingRepository settingRepository;
 
-    private final UserRepository userRepository;
+        private final UserRepository userRepository;
 
-    private final ExpenseRepository expenseRepository;
+        private final SettingsRepository settingsRepository;
 
-    // ==========================================
-    // Logged In User
-    // ==========================================
+        // ==========================================
+        // Logged In User
+        // ==========================================
 
-    private User getLoggedInUser() {
+        private User getLoggedInUser() {
+                String email =
+                        SecurityUtil.getCurrentUserEmail();
 
-        String email = SecurityUtil.getCurrentUserEmail();
+                return userRepository
+                        .findByEmail(email)
+                        .orElseThrow(() ->
+                                new RuntimeException(
+                                        "User not found"
+                                )
+                        );
+        }
 
-        return userRepository.findByEmail(email)
-                .orElseThrow(() ->
-                        new RuntimeException("User not found"));
+        // ==========================================
+        // Get Notifications
+        // ==========================================
 
-    }
+        @Override
+        @Transactional(readOnly = true)
+        public List<NotificationResponse> getNotifications() {
+                User user =
+                        getLoggedInUser();
 
-    // ==========================================
-    // Get Notifications
-    // ==========================================
+                return notificationRepository
+                        .findByUserOrderByCreatedAtDesc(user)
+                        .stream()
+                        .map(this::mapNotification)
+                        .toList();
+        }
 
-    @Override
-    @Transactional(readOnly = true)
-    public List<NotificationResponse> getNotifications() {
+        // ==========================================
+        // Get Unread Count
+        // ==========================================
 
-        User user = getLoggedInUser();
+        @Override
+        @Transactional(readOnly = true)
+        public Long getUnreadCount() {
+                return notificationRepository
+                        .countByUserAndIsReadFalse(
+                                getLoggedInUser()
+                        );
+        }
 
-        return notificationRepository
-                .findByUserOrderByCreatedAtDesc(user)
-                .stream()
-                .map(this::mapNotification)
-                .toList();
+        // ==========================================
+        // Mark Notification Read
+        // ==========================================
 
-    }
+        @Override
+        public void markAsRead(
+                Long notificationId
+        ) {
+                User user =
+                        getLoggedInUser();
 
-    // ==========================================
-    // Get Unread Count
-    // ==========================================
+                Notification notification =
+                        notificationRepository
+                                .findByIdAndUser(
+                                        notificationId,
+                                        user
+                                )
+                                .orElseThrow(() ->
+                                        new RuntimeException(
+                                                "Notification not found"
+                                        )
+                                );
 
-    @Override
-    @Transactional(readOnly = true)
-    public Long getUnreadCount() {
+                notification.setIsRead(true);
 
-        return notificationRepository
-                .countByUserAndIsReadFalse(
-                        getLoggedInUser()
+                notificationRepository.save(
+                        notification
+                );
+        }
+
+        // ==========================================
+        // Mark All Notifications Read
+        // ==========================================
+
+        @Override
+        public void markAllAsRead() {
+                notificationRepository
+                        .markAllAsRead(
+                                getLoggedInUser()
+                        );
+        }
+
+        // ==========================================
+        // Delete Notification
+        // ==========================================
+
+        @Override
+        public void deleteNotification(
+                Long notificationId
+        ) {
+                User user =
+                        getLoggedInUser();
+
+                Notification notification =
+                        notificationRepository
+                                .findByIdAndUser(
+                                        notificationId,
+                                        user
+                                )
+                                .orElseThrow(() ->
+                                        new RuntimeException(
+                                                "Notification not found"
+                                        )
+                                );
+
+                notificationRepository.delete(
+                        notification
+                );
+        }
+
+        // ==========================================
+        // Get Reminder Settings
+        // ==========================================
+
+        @Override
+        public NotificationSettingResponse getSettings() {
+                User user =
+                        getLoggedInUser();
+
+                NotificationSetting setting =
+                        settingRepository
+                                .findByUser(user)
+                                .orElseGet(() ->
+                                        createDefaultSetting(
+                                                user
+                                        )
+                                );
+
+                return mapSetting(
+                        setting
+                );
+        }
+
+        // ==========================================
+        // Save Reminder Settings
+        // ==========================================
+
+        @Override
+        public NotificationSettingResponse saveSettings(
+                NotificationSettingRequest request
+        ) {
+                User user =
+                        getLoggedInUser();
+
+                NotificationSetting setting =
+                        settingRepository
+                                .findByUser(user)
+                                .orElseGet(() ->
+                                        createDefaultSetting(
+                                                user
+                                        )
+                                );
+
+                if (
+                        request.getEnabled() != null
+                ) {
+                setting.setEnabled(
+                        request.getEnabled()
+                );
+                }
+
+                if (
+                        request.getMorningReminderTime()
+                                != null
+                ) {
+                setting.setMorningReminderTime(
+                        request.getMorningReminderTime()
+                );
+                }
+
+                if (
+                        request.getAfternoonReminderTime()
+                                != null
+                ) {
+                setting.setAfternoonReminderTime(
+                        request.getAfternoonReminderTime()
+                );
+                }
+
+                if (
+                        request.getEveningReminderTime()
+                                != null
+                ) {
+                setting.setEveningReminderTime(
+                        request.getEveningReminderTime()
+                );
+                }
+
+                if (
+                        request.getNightReminderTime()
+                                != null
+                ) {
+                setting.setNightReminderTime(
+                        request.getNightReminderTime()
+                );
+                }
+
+                settingRepository.save(
+                        setting
                 );
 
-    }
+                /*
+                * Keep Settings.dailyReminder and
+                * NotificationSetting.enabled synchronized.
+                */
+                Settings appSettings =
+                        settingsRepository
+                                .findByUser(user)
+                                .orElse(null);
 
-    // ==========================================
-    // Mark Notification Read
-    // ==========================================
+                if (
+                        appSettings != null &&
+                        request.getEnabled() != null
+                ) {
+                appSettings.setDailyReminder(
+                        request.getEnabled()
+                );
 
-    @Override
-    public void markAsRead(Long notificationId) {
+                settingsRepository.save(
+                        appSettings
+                );
+                }
 
-        User user = getLoggedInUser();
-
-        Notification notification =
-                notificationRepository
-                        .findByIdAndUser(notificationId, user)
-                        .orElseThrow(() ->
-                                new RuntimeException("Notification not found"));
-
-        notification.setIsRead(true);
-
-        notificationRepository.save(notification);
-
-    }
-
-    // ==========================================
-    // Mark All Notifications Read
-    // ==========================================
-
-    @Override
-    public void markAllAsRead() {
-
-        notificationRepository.markAllAsRead(
-                getLoggedInUser()
-        );
-
-    }
-
-    // ==========================================
-    // Delete Notification
-    // ==========================================
-
-    @Override
-    public void deleteNotification(Long notificationId) {
-
-        User user = getLoggedInUser();
-
-        Notification notification =
-                notificationRepository
-                        .findByIdAndUser(notificationId, user)
-                        .orElseThrow(() ->
-                                new RuntimeException("Notification not found"));
-
-        notificationRepository.delete(notification);
-
-    }
-        // ==========================================
-    // Get Reminder Settings
-    // ==========================================
-
-    @Override
-    @Transactional(readOnly = true)
-    public NotificationSettingResponse getSettings() {
-
-        User user = getLoggedInUser();
-
-        NotificationSetting setting = settingRepository
-                .findByUser(user)
-                .orElseGet(() -> createDefaultSetting(user));
-
-        return mapSetting(setting);
-
-    }
-
-    // ==========================================
-    // Save Reminder Settings
-    // ==========================================
-
-    @Override
-    public NotificationSettingResponse saveSettings(
-            NotificationSettingRequest request
-    ) {
-
-        User user = getLoggedInUser();
-
-        NotificationSetting setting = settingRepository
-                .findByUser(user)
-                .orElseGet(() -> createDefaultSetting(user));
-
-        setting.setEnabled(request.getEnabled());
-
-        setting.setMorningReminderTime(
-                request.getMorningReminderTime()
-        );
-
-        setting.setAfternoonReminderTime(
-                request.getAfternoonReminderTime()
-        );
-
-        setting.setEveningReminderTime(
-                request.getEveningReminderTime()
-        );
-
-        setting.setNightReminderTime(
-                request.getNightReminderTime()
-        );
-
-        settingRepository.save(setting);
-
-        return mapSetting(setting);
-
-    }
-
-    // ==========================================
-    // Create Default Notification Settings
-    // ==========================================
-
-    private NotificationSetting createDefaultSetting(
-            User user
-    ) {
-
-        NotificationSetting setting =
-                NotificationSetting.builder()
-                        .user(user)
-                        .enabled(true)
-                        .morningReminderTime(LocalTime.of(9, 0))
-                        .afternoonReminderTime(LocalTime.of(13, 0))
-                        .eveningReminderTime(LocalTime.of(18, 0))
-                        .nightReminderTime(LocalTime.of(22, 0))
-                        .build();
-
-        return settingRepository.save(setting);
-
-    }
+                return mapSetting(
+                        setting
+                );
+        }
 
         // ==========================================
-    // Create Reminder Notification
-    // ==========================================
+        // Create Default Reminder Settings
+        // ==========================================
 
-    @Override
-    public void createReminderNotification(
-            Long userId,
-            String title,
-            String message,
-            String type
-    ) {
+        private NotificationSetting createDefaultSetting(
+                User user
+        ) {
+                NotificationSetting setting =
+                        NotificationSetting.builder()
+                                .user(user)
+                                .enabled(true)
+                                .morningReminderTime(
+                                        LocalTime.of(9, 0)
+                                )
+                                .afternoonReminderTime(
+                                        LocalTime.of(13, 0)
+                                )
+                                .eveningReminderTime(
+                                        LocalTime.of(18, 0)
+                                )
+                                .nightReminderTime(
+                                        LocalTime.of(22, 0)
+                                )
+                                .build();
 
-        User user = userRepository.findById(userId)
-                .orElseThrow(() ->
-                        new RuntimeException("User not found"));
+                return settingRepository.save(
+                        setting
+                );
+        }
 
-        NotificationType notificationType =
-                NotificationType.valueOf(type);
+        // ==========================================
+        // Create Daily Reminder Notification
+        // ==========================================
 
-        switch (notificationType) {
+        @Override
+        public void createReminderNotification(
+                Long userId,
+                String title,
+                String message,
+                String type
+        ) {
+                User user =
+                        userRepository
+                                .findById(userId)
+                                .orElseThrow(() ->
+                                        new RuntimeException(
+                                                "User not found"
+                                        )
+                                );
 
+                NotificationType notificationType;
+
+                try {
+                notificationType =
+                        NotificationType.valueOf(
+                                type
+                        );
+                } catch (
+                        IllegalArgumentException ex
+                ) {
+                throw new RuntimeException(
+                        "Invalid notification type: "
+                                + type
+                );
+                }
+
+                switch (
+                        notificationType
+                ) {
                 case MORNING_REMINDER -> {
-
-                        title = "Morning Expense Reminder";
+                        title =
+                                "Morning Expense Reminder";
 
                         message =
                                 "Good morning! Start your day by recording today's expenses and stay on top of your finances.";
                 }
 
                 case AFTERNOON_REMINDER -> {
-
                         boolean morningUnread =
                                 notificationRepository
                                         .findFirstByUserAndTypeAndIsReadFalseOrderByCreatedAtDesc(
@@ -255,25 +360,21 @@ public class NotificationServiceImpl implements NotificationService {
                                         .isPresent();
 
                         if (morningUnread) {
-
-                        title = "Expense Check-in";
+                        title =
+                                "Expense Check-in";
 
                         message =
                                 "We noticed today's expenses may still need your attention. Take a moment to keep your records up to date.";
-
                         } else {
-
-                        title = "Afternoon Expense Reminder";
+                        title =
+                                "Afternoon Expense Reminder";
 
                         message =
                                 "Keep your expense records updated throughout the afternoon.";
-
                         }
-
                 }
 
                 case EVENING_REMINDER -> {
-
                         boolean afternoonUnread =
                                 notificationRepository
                                         .findFirstByUserAndTypeAndIsReadFalseOrderByCreatedAtDesc(
@@ -283,25 +384,21 @@ public class NotificationServiceImpl implements NotificationService {
                                         .isPresent();
 
                         if (afternoonUnread) {
-
-                        title = "Daily Expense Review";
+                        title =
+                                "Daily Expense Review";
 
                         message =
                                 "Before wrapping up your day, review and record any remaining expenses to keep your budget accurate.";
-
                         } else {
-
-                        title = "Evening Expense Reminder";
+                        title =
+                                "Evening Expense Reminder";
 
                         message =
                                 "Take a quick look at today's expenses and make sure everything is recorded.";
-
                         }
-
                 }
 
                 case NIGHT_REMINDER -> {
-
                         boolean eveningUnread =
                                 notificationRepository
                                         .findFirstByUserAndTypeAndIsReadFalseOrderByCreatedAtDesc(
@@ -311,112 +408,217 @@ public class NotificationServiceImpl implements NotificationService {
                                         .isPresent();
 
                         if (eveningUnread) {
-
-                        title = "End of Day Reminder";
+                        title =
+                                "End of Day Reminder";
 
                         message =
                                 "Finish today's financial tracking by recording any pending expenses before the day ends.";
-
                         } else {
-
-                        title = "Night Expense Reminder";
+                        title =
+                                "Night Expense Reminder";
 
                         message =
                                 "You're almost done for the day. Make sure today's expense records are complete.";
-
                         }
-
                 }
 
                 default -> {
+                        title =
+                                title != null
+                                        ? title
+                                        : "Expense Reminder";
 
-                        title = "Expense Reminder";
-
-                        message = "Please record today's expenses.";
-
+                        message =
+                                message != null
+                                        ? message
+                                        : "Please record today's expenses.";
+                }
                 }
 
+                LocalDate today =
+                        LocalDate.now();
+
+                LocalDateTime startOfDay =
+                        today.atStartOfDay();
+
+                LocalDateTime endOfDay =
+                        today
+                                .plusDays(1)
+                                .atStartOfDay();
+
+                boolean alreadyExists =
+                        notificationRepository
+                                .existsByUserAndTypeAndCreatedAtBetween(
+                                        user,
+                                        notificationType,
+                                        startOfDay,
+                                        endOfDay
+                                );
+
+                if (alreadyExists) {
+                return;
                 }
 
-        LocalDate today = LocalDate.now();
+                Notification notification =
+                        Notification.builder()
+                                .user(user)
+                                .title(title)
+                                .message(message)
+                                .type(notificationType)
+                                .isRead(false)
+                                .createdAt(
+                                        LocalDateTime.now()
+                                )
+                                .reminderTime(
+                                        LocalDateTime.now()
+                                )
+                                .build();
 
-        LocalDateTime startOfDay =
-                today.atStartOfDay();
-
-        LocalDateTime endOfDay =
-                today.plusDays(1).atStartOfDay();
-
-        boolean alreadyExists =
-                notificationRepository
-                        .existsByUserAndTypeAndCreatedAtBetween(
-                                user,
-                                notificationType,
-                                startOfDay,
-                                endOfDay
-                        );
-
-        if (alreadyExists) {
-            return;
+                notificationRepository.save(
+                        notification
+                );
         }
 
-        Notification notification =
-                Notification.builder()
-                        .user(user)
-                        .title(title)
-                        .message(message)
-                        .type(notificationType)
-                        .isRead(false)
-                        .createdAt(LocalDateTime.now())
-                        .reminderTime(LocalDateTime.now())
-                        .build();
-
-        notificationRepository.save(notification);
-
-    }
         // ==========================================
-    // Notification -> Response
-    // ==========================================
+        // Create Preference-Based Notification
+        // ==========================================
 
-    private NotificationResponse mapNotification(
-            Notification notification
-    ) {
+        @Override
+        public void createSystemNotification(
+                Long userId,
+                String title,
+                String message,
+                String type
+        ) {
+                User user =
+                        userRepository
+                                .findById(userId)
+                                .orElseThrow(() ->
+                                        new RuntimeException(
+                                                "User not found"
+                                        )
+                                );
 
-        return NotificationResponse.builder()
-                .id(notification.getId())
-                .title(notification.getTitle())
-                .message(notification.getMessage())
-                .read(notification.getIsRead())
-                .type(notification.getType())
-                .createdAt(notification.getCreatedAt())
-                .build();
+                NotificationType notificationType;
 
-    }
+                try {
+                notificationType =
+                        NotificationType.valueOf(
+                                type
+                        );
+                } catch (
+                        IllegalArgumentException ex
+                ) {
+                throw new RuntimeException(
+                        "Invalid notification type: "
+                                + type
+                );
+                }
 
-    // ==========================================
-    // Notification Setting -> Response
-    // ==========================================
+                LocalDate today =
+                        LocalDate.now();
 
-    private NotificationSettingResponse mapSetting(
-            NotificationSetting setting
-    ) {
+                LocalDateTime startOfDay =
+                        today.atStartOfDay();
 
-        return NotificationSettingResponse.builder()
-                .id(setting.getId())
-                .enabled(setting.getEnabled())
-                .morningReminderTime(
-                        setting.getMorningReminderTime()
-                )
-                .afternoonReminderTime(
-                        setting.getAfternoonReminderTime()
-                )
-                .eveningReminderTime(
-                        setting.getEveningReminderTime()
-                )
-                .nightReminderTime(
-                        setting.getNightReminderTime()
-                )
-                .build();
+                LocalDateTime endOfDay =
+                        today
+                                .plusDays(1)
+                                .atStartOfDay();
 
-    }
+                /*
+                * Prevent the same notification type
+                * from being generated repeatedly
+                * during the same day.
+                */
+                boolean alreadyExists =
+                        notificationRepository
+                                .existsByUserAndTypeAndCreatedAtBetween(
+                                        user,
+                                        notificationType,
+                                        startOfDay,
+                                        endOfDay
+                                );
 
+                if (alreadyExists) {
+                return;
+                }
+
+                Notification notification =
+                        Notification.builder()
+                                .user(user)
+                                .title(title)
+                                .message(message)
+                                .type(notificationType)
+                                .isRead(false)
+                                .createdAt(
+                                        LocalDateTime.now()
+                                )
+                                .reminderTime(
+                                        LocalDateTime.now()
+                                )
+                                .build();
+
+                notificationRepository.save(
+                        notification
+                );
+        }
+
+        // ==========================================
+        // Notification -> Response
+        // ==========================================
+
+        private NotificationResponse mapNotification(
+                Notification notification
+        ) {
+                return NotificationResponse.builder()
+                        .id(
+                                notification.getId()
+                        )
+                        .title(
+                                notification.getTitle()
+                        )
+                        .message(
+                                notification.getMessage()
+                        )
+                        .read(
+                                notification.getIsRead()
+                        )
+                        .type(
+                                notification.getType()
+                        )
+                        .createdAt(
+                                notification.getCreatedAt()
+                        )
+                        .build();
+        }
+
+        // ==========================================
+        // Notification Setting -> Response
+        // ==========================================
+
+        private NotificationSettingResponse mapSetting(
+                NotificationSetting setting
+        ) {
+                return NotificationSettingResponse.builder()
+                        .id(
+                                setting.getId()
+                        )
+                        .enabled(
+                                setting.getEnabled()
+                        )
+                        .morningReminderTime(
+                                setting.getMorningReminderTime()
+                        )
+                        .afternoonReminderTime(
+                                setting.getAfternoonReminderTime()
+                        )
+                        .eveningReminderTime(
+                                setting.getEveningReminderTime()
+                        )
+                        .nightReminderTime(
+                                setting.getNightReminderTime()
+                        )
+                        .build();
+        }
 }

@@ -1,144 +1,143 @@
 import {
   FaWallet,
   FaList,
-  FaCalendarDay,
   FaChartLine,
-} from "react-icons/fa";
+  FaArrowTrendUp,
+} from "react-icons/fa6";
 
-import { formatCurrency } from "../../utils/format";
-import { useSavings } from "../../context/SavingsContext";
+import {
+  formatCurrency,
+} from "../../utils/format";
+
+import {
+  useSavings,
+} from "../../context/SavingsContext";
 
 export default function SavingsSummaryCards() {
-
   const {
     savings,
     totalSavings,
+    averageSaving,
+    largestSaving,
+    selectedMonth,
   } = useSavings();
 
-
-  const today = new Date();
-
-  const todaySavings = savings.reduce(
-    (sum, item) => {
-      if (
-        item.savingDate ===
-        today.toISOString().slice(0, 10)
-      ) {
-        return sum + Number(item.amount);
-      }
-
-      return sum;
-    },
-    0
-  );
-
-
-  const monthSavings = savings.reduce(
-    (sum, item) => {
-
-      const date = new Date(item.savingDate);
-
-      if (
-        date.getMonth() === today.getMonth() &&
-        date.getFullYear() === today.getFullYear()
-      ) {
-        return sum + Number(item.amount);
-      }
-
-      return sum;
-
-    },
-    0
-  );
-
-
   const cards = [
-
     {
-      title: "Total Savings",
+      title: "Monthly Savings",
       value: formatCurrency(totalSavings),
-      subtitle: "All time savings",
+      subtitle: `Saved in ${selectedMonth}`,
       color: "bg-green-500",
-      bg: "bg-green-50",
-      icon: <FaWallet />,
+      bg: "bg-green-50 dark:bg-green-950/20",
+      icon: FaWallet,
     },
-
     {
       title: "Transactions",
       value: savings.length,
-      subtitle: "Total savings entries",
+      subtitle: "Savings entries this month",
       color: "bg-blue-500",
-      bg: "bg-blue-50",
-      icon: <FaList />,
+      bg: "bg-blue-50 dark:bg-blue-950/20",
+      icon: FaList,
     },
-
     {
-      title: "Today's Savings",
-      value: formatCurrency(todaySavings),
-      subtitle: "Saved today",
+      title: "Average Saving",
+      value: formatCurrency(averageSaving),
+      subtitle: "Average per entry",
       color: "bg-purple-500",
-      bg: "bg-purple-50",
-      icon: <FaCalendarDay />,
+      bg: "bg-purple-50 dark:bg-purple-950/20",
+      icon: FaChartLine,
     },
-
     {
-      title: "This Month",
-      value: formatCurrency(monthSavings),
-      subtitle: "Monthly savings",
+      title: "Largest Saving",
+      value: formatCurrency(largestSaving),
+      subtitle: "Highest entry this month",
       color: "bg-orange-500",
-      bg: "bg-orange-50",
-      icon: <FaChartLine />,
+      bg: "bg-orange-50 dark:bg-orange-950/20",
+      icon: FaArrowTrendUp,
     },
-
   ];
 
-
   return (
+    <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4">
 
-    <div className="grid xl:grid-cols-4 md:grid-cols-2 gap-6">
+      {cards.map(card => {
+        const Icon = card.icon;
 
-      {cards.map((card) => (
+        return (
+          <div
+            key={card.title}
+            className={`
+              ${card.bg}
+              min-w-0
+              rounded-3xl
+              border
+              border-slate-100
+              p-6
+              transition
+              duration-300
+              hover:-translate-y-1
+              hover:shadow-xl
+              dark:border-slate-800
+            `}
+          >
 
-        <div
-          key={card.title}
-          className={`${card.bg} rounded-3xl p-6 border border-gray-100 hover:shadow-xl transition`}
-        >
+            {/* Header */}
 
-          <div className="flex justify-between">
+            <div className="flex items-start justify-between gap-4">
 
-            <div>
-
-              <p className="text-sm text-gray-500">
+              <p className="min-w-0 text-sm font-medium text-slate-500 dark:text-slate-400">
                 {card.title}
               </p>
 
-              <h2 className="text-3xl font-bold text-slate-800 mt-3">
+              <div
+                className={`
+                  ${card.color}
+                  flex
+                  h-14
+                  w-14
+                  shrink-0
+                  items-center
+                  justify-center
+                  rounded-2xl
+                  text-xl
+                  text-white
+                  shadow-sm
+                `}
+              >
+                <Icon />
+              </div>
+
+            </div>
+
+            {/* Value */}
+
+            <div className="mt-5 min-w-0">
+
+              <h2
+                className="
+                  break-words
+                  text-2xl
+                  font-bold
+                  leading-tight
+                  tracking-tight
+                  text-slate-800
+                  dark:text-white
+                  2xl:text-3xl
+                "
+              >
                 {card.value}
               </h2>
 
-              <p className="text-sm text-gray-500 mt-3">
+              <p className="mt-4 text-sm leading-5 text-slate-500 dark:text-slate-400">
                 {card.subtitle}
               </p>
 
             </div>
 
-
-            <div
-              className={`${card.color} w-14 h-14 rounded-2xl flex items-center justify-center text-white text-xl`}
-            >
-
-              {card.icon}
-
-            </div>
-
           </div>
-
-        </div>
-
-      ))}
+        );
+      })}
 
     </div>
-
   );
-
 }

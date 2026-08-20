@@ -1,32 +1,30 @@
 import { motion } from "framer-motion";
+
 import {
   FaCode,
-  FaEnvelope,
   FaGithub,
   FaGlobe,
   FaHeart,
   FaInfoCircle,
-  FaSyncAlt,
-  FaShieldAlt,
-  FaFileContract,
 } from "react-icons/fa";
 
 export default function AboutSettings() {
   const info = [
     {
+      icon:
+        <FaInfoCircle />,
+      title: "Version",
+      value: "1.0.0",
+    },
+    {
       icon: <FaCode />,
-      title: "Developer",
-      value: "Karthik Reddy",
+      title: "Application",
+      value: "PaisaTrack Web",
     },
     {
       icon: <FaGlobe />,
-      title: "Website",
-      value: "Coming Soon",
-    },
-    {
-      icon: <FaEnvelope />,
-      title: "Support",
-      value: "support@paisatrack.com",
+      title: "Environment",
+      value: "Development",
     },
     {
       icon: <FaGithub />,
@@ -37,103 +35,90 @@ export default function AboutSettings() {
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 25 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.35 }}
-      className="bg-white rounded-3xl border border-gray-100 shadow-xl p-6"
+      initial={{
+        opacity: 0,
+        y: 20,
+      }}
+      animate={{
+        opacity: 1,
+        y: 0,
+      }}
+      className="
+        rounded-3xl
+        border
+        border-slate-200
+        bg-white
+        p-5
+        shadow-lg
+        dark:border-slate-700
+        dark:bg-slate-900
+        sm:p-6
+      "
     >
-      <div className="flex items-center gap-4 mb-8">
-        <div className="w-16 h-16 rounded-2xl bg-[#0B6B57] flex items-center justify-center text-white text-3xl font-bold">
+
+      <div className="mb-6 flex items-center gap-4">
+
+        <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-[#0B6B57] text-2xl font-bold text-white">
           ₹
         </div>
 
-        <div>
-          <h2 className="text-2xl font-bold text-slate-800">
+        <div className="min-w-0">
+
+          <h2 className="text-2xl font-bold text-slate-800 dark:text-white">
             PaisaTrack
           </h2>
 
-          <p className="text-gray-500">
-            Version 1.0.0
+          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+            Personal finance management with intelligent guidance.
           </p>
+
         </div>
+
       </div>
 
-      <div className="space-y-4">
-        {info.map((item) => (
-          <motion.div
+      <div className="grid gap-3 sm:grid-cols-2">
+
+        {info.map(item => (
+          <div
             key={item.title}
-            whileHover={{ x: 4 }}
-            transition={{ duration: 0.2 }}
-            className="flex items-center justify-between rounded-2xl border border-gray-200 p-4"
+            className="flex min-w-0 items-center justify-between gap-4 rounded-2xl border border-slate-200 p-4 dark:border-slate-700"
           >
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-[#0B6B57]/10 flex items-center justify-center text-[#0B6B57]">
+
+            <div className="flex min-w-0 items-center gap-3">
+
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#0B6B57]/10 text-[#0B6B57]">
                 {item.icon}
               </div>
 
-              <span className="font-semibold text-slate-700">
+              <span className="truncate font-semibold text-slate-700 dark:text-slate-200">
                 {item.title}
               </span>
+
             </div>
 
-            <span className="text-gray-500">
+            <span className="shrink-0 text-sm text-slate-500 dark:text-slate-400">
               {item.value}
             </span>
-          </motion.div>
+
+          </div>
         ))}
+
       </div>
 
-      <div className="grid grid-cols-2 gap-4 mt-8">
-        <motion.button
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-          className="rounded-2xl bg-[#0B6B57] py-4 text-white font-semibold flex items-center justify-center gap-2"
-        >
-          <FaSyncAlt />
-          Check Updates
-        </motion.button>
+      <div className="mt-6 rounded-2xl border border-[#0B6B57]/20 bg-[#0B6B57]/5 p-5 text-center">
 
-        <motion.button
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-          className="rounded-2xl border border-gray-300 py-4 font-semibold flex items-center justify-center gap-2"
-        >
-          <FaInfoCircle />
-          Changelog
-        </motion.button>
-      </div>
+        <FaHeart className="mx-auto text-2xl text-red-500" />
 
-      <div className="grid grid-cols-2 gap-4 mt-4">
-        <motion.button
-          whileHover={{ scale: 1.02 }}
-          className="rounded-2xl bg-slate-50 py-4 flex items-center justify-center gap-2"
-        >
-          <FaShieldAlt />
-          Privacy Policy
-        </motion.button>
-
-        <motion.button
-          whileHover={{ scale: 1.02 }}
-          className="rounded-2xl bg-slate-50 py-4 flex items-center justify-center gap-2"
-        >
-          <FaFileContract />
-          Terms
-        </motion.button>
-      </div>
-
-      <div className="mt-8 rounded-2xl bg-gradient-to-r from-[#0B6B57]/10 to-[#12A67D]/10 border border-[#0B6B57]/20 p-6 text-center">
-        <FaHeart className="mx-auto text-3xl text-red-500" />
-
-        <h3 className="mt-4 text-xl font-bold text-slate-800">
-          Thank You!
+        <h3 className="mt-3 text-lg font-bold text-slate-800 dark:text-white">
+          Built for better financial habits
         </h3>
 
-        <p className="mt-2 text-gray-600 leading-6">
-          Thank you for choosing PaisaTrack to manage your personal finances.
-          We're continuously working to make budgeting, saving, and expense
-          tracking simpler and smarter.
+        <p className="mx-auto mt-2 max-w-2xl text-sm leading-6 text-slate-600 dark:text-slate-300">
+          Track expenses, income, budgets, savings, and goals while using PaisaTrack AI for personalized financial guidance.
         </p>
+
       </div>
+
     </motion.div>
   );
 }

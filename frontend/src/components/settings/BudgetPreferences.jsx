@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+
 import {
   FaExclamationTriangle,
   FaFire,
@@ -8,22 +9,44 @@ import {
 import { useSettings } from "../../context/SettingsContext";
 
 export default function BudgetPreferences() {
-  const { settings, updateBudget } = useSettings();
+  const {
+    settings,
+    updateBudget,
+  } = useSettings();
 
-  const warning = settings.budget.warning;
-  const critical = settings.budget.critical;
+  const warning =
+    Number(settings.budget?.warning ?? 70);
+
+  const critical =
+    Number(settings.budget?.critical ?? 90);
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 25 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.35 }}
-      className="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden"
+      initial={{
+        opacity: 0,
+        y: 20,
+      }}
+      animate={{
+        opacity: 1,
+        y: 0,
+      }}
+      className="
+        overflow-hidden
+        rounded-3xl
+        border
+        border-slate-200
+        bg-white
+        shadow-lg
+        dark:border-slate-700
+        dark:bg-slate-900
+      "
     >
       <div className="bg-gradient-to-r from-[#0B6B57] to-[#12A67D] p-6">
+
         <div className="flex items-center gap-4">
-          <div className="w-14 h-14 rounded-2xl bg-white/20 flex items-center justify-center">
-            <FaWallet className="text-white text-2xl" />
+
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/20">
+            <FaWallet className="text-xl text-white" />
           </div>
 
           <div>
@@ -31,115 +54,152 @@ export default function BudgetPreferences() {
               Budget Preferences
             </h2>
 
-            <p className="text-white/80 mt-1">
-              Configure spending alerts and warning limits.
+            <p className="mt-1 text-sm text-white/80">
+              Configure budget warning and critical alert levels.
             </p>
           </div>
+
         </div>
+
       </div>
 
-      <div className="p-6 space-y-8">
+      <div className="space-y-7 p-5 sm:p-6">
 
-        <div>
-          <div className="flex justify-between mb-2">
-            <label className="font-semibold text-slate-700">
-              Warning Alert
-            </label>
+        <PreferenceRange
+          title="Warning Alert"
+          value={warning}
+          min={50}
+          max={90}
+          onChange={value =>
+            updateBudget(
+              "warning",
+              value
+            )
+          }
+          accentClass="accent-[#0B6B57]"
+          progressClass="bg-[#0B6B57]"
+          valueClass="text-[#0B6B57]"
+          icon={
+            <FaExclamationTriangle />
+          }
+          boxClass="border-yellow-200 bg-yellow-50 dark:border-yellow-900 dark:bg-yellow-950/20"
+          headingClass="text-yellow-700 dark:text-yellow-300"
+          textClass="text-yellow-600 dark:text-yellow-400"
+          message={`You'll receive a warning when spending reaches ${warning}% of your monthly budget.`}
+        />
 
-            <span className="font-bold text-[#0B6B57]">
-              {warning}%
-            </span>
-          </div>
+        <PreferenceRange
+          title="Critical Alert"
+          value={critical}
+          min={80}
+          max={100}
+          onChange={value =>
+            updateBudget(
+              "critical",
+              value
+            )
+          }
+          accentClass="accent-red-500"
+          progressClass="bg-red-500"
+          valueClass="text-red-600"
+          icon={<FaFire />}
+          boxClass="border-red-200 bg-red-50 dark:border-red-900 dark:bg-red-950/20"
+          headingClass="text-red-700 dark:text-red-300"
+          textClass="text-red-600 dark:text-red-400"
+          message={`High-priority alerts are generated when spending reaches ${critical}% of the budget.`}
+        />
 
-          <input
-            type="range"
-            min="50"
-            max="90"
-            value={warning}
-            onChange={(e) =>
-              updateBudget("warning", e.target.value)
-            }
-            className="w-full accent-[#0B6B57]"
-          />
+        <div className="rounded-2xl border border-[#0B6B57]/20 bg-[#0B6B57]/5 p-4">
 
-          <div className="mt-3 h-2 rounded-full bg-gray-200 overflow-hidden">
-            <motion.div
-              animate={{ width: `${warning}%` }}
-              className="h-full bg-[#0B6B57]"
-            />
-          </div>
-
-          <div className="flex items-start gap-3 mt-4 rounded-2xl bg-yellow-50 p-4 border border-yellow-100">
-            <FaExclamationTriangle className="text-yellow-600 mt-1" />
-
-            <div>
-              <h3 className="font-semibold text-yellow-700">
-                Warning Level
-              </h3>
-
-              <p className="text-sm text-yellow-600 mt-1">
-                You'll receive a reminder once your spending reaches {warning}% of your monthly budget.
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <div>
-          <div className="flex justify-between mb-2">
-            <label className="font-semibold text-slate-700">
-              Critical Alert
-            </label>
-
-            <span className="font-bold text-red-600">
-              {critical}%
-            </span>
-          </div>
-
-          <input
-            type="range"
-            min="80"
-            max="100"
-            value={critical}
-            onChange={(e) =>
-              updateBudget("critical", e.target.value)
-            }
-            className="w-full accent-red-500"
-          />
-
-          <div className="mt-3 h-2 rounded-full bg-gray-200 overflow-hidden">
-            <motion.div
-              animate={{ width: `${critical}%` }}
-              className="h-full bg-red-500"
-            />
-          </div>
-
-          <div className="flex items-start gap-3 mt-4 rounded-2xl bg-red-50 p-4 border border-red-100">
-            <FaFire className="text-red-600 mt-1" />
-
-            <div>
-              <h3 className="font-semibold text-red-700">
-                Critical Level
-              </h3>
-
-              <p className="text-sm text-red-600 mt-1">
-                When spending exceeds {critical}% of the budget, PaisaTrack will send high-priority alerts.
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <div className="rounded-2xl bg-[#0B6B57]/5 border border-[#0B6B57]/20 p-5">
           <h3 className="font-semibold text-[#0B6B57]">
-            Budget Recommendation
+            Recommended setup
           </h3>
 
-          <p className="text-gray-600 mt-2 leading-6">
-            Keeping your warning level between 65% and 75% helps you stay on track before overspending.
-            A critical alert around 90% provides enough time to adjust your expenses.
+          <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">
+            A warning around 70% and a critical alert around 90% usually gives enough time to adjust spending before exceeding a budget.
+          </p>
+
+        </div>
+
+      </div>
+
+    </motion.div>
+  );
+}
+
+function PreferenceRange({
+  title,
+  value,
+  min,
+  max,
+  onChange,
+  accentClass,
+  progressClass,
+  valueClass,
+  icon,
+  boxClass,
+  headingClass,
+  textClass,
+  message,
+}) {
+  return (
+    <div>
+
+      <div className="mb-3 flex items-center justify-between gap-4">
+
+        <label className="font-semibold text-slate-700 dark:text-slate-200">
+          {title}
+        </label>
+
+        <span className={`font-bold ${valueClass}`}>
+          {value}%
+        </span>
+
+      </div>
+
+      <input
+        type="range"
+        min={min}
+        max={max}
+        value={value}
+        onChange={event =>
+          onChange(
+            Number(event.target.value)
+          )
+        }
+        className={`w-full ${accentClass}`}
+      />
+
+      <div className="mt-3 h-2 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700">
+
+        <motion.div
+          animate={{
+            width: `${value}%`,
+          }}
+          className={`h-full ${progressClass}`}
+        />
+
+      </div>
+
+      <div
+        className={`mt-4 flex items-start gap-3 rounded-2xl border p-4 ${boxClass}`}
+      >
+        <div className={`mt-1 shrink-0 ${headingClass}`}>
+          {icon}
+        </div>
+
+        <div>
+          <h3 className={`font-semibold ${headingClass}`}>
+            {title}
+          </h3>
+
+          <p className={`mt-1 text-sm leading-6 ${textClass}`}>
+            {message}
           </p>
         </div>
 
       </div>
-    </motion.div>
+
+    </div>
   );
 }

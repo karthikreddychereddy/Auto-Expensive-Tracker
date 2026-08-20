@@ -42,7 +42,7 @@ export default function ChatWindow({
 
           ) : (
 
-            <div className="space-y-8">
+            <div className="min-w-0 space-y-4 sm:space-y-6 lg:space-y-8">
 
               {messages.map((message) => (
 

@@ -59,7 +59,7 @@ export default function GoalSummaryCards() {
 
     return (
 
-        <div className="grid xl:grid-cols-4 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 xl:grid-cols-4 xl:gap-6">
 
             {cards.map(card => (
 

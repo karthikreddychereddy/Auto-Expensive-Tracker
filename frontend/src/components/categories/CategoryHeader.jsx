@@ -7,17 +7,17 @@ export default function CategoryHeader() {
 
     return (
 
-        <div className="flex justify-between items-center">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
 
             <div>
 
-                <h1 className="text-5xl font-bold">
+                <h1 className="text-3xl font-bold text-slate-800 dark:text-white sm:text-4xl lg:text-5xl">
 
                     Categories
 
                 </h1>
 
-                <p className="text-gray-500 mt-2">
+                <p className="mt-2 text-gray-500 dark:text-gray-400">
 
                     Manage your income and expense categories.
 
@@ -29,7 +29,7 @@ export default function CategoryHeader() {
 
                 onClick={() => openModal("category")}
 
-                className="bg-[#0B6B57] hover:bg-[#095746] text-white px-6 py-4 rounded-2xl flex items-center gap-3 transition"
+                className="bg-[#0B6B57] hover:bg-[#095746] text-white w-full justify-center px-5 py-3 rounded-xl flex items-center gap-3 transition sm:w-auto sm:rounded-2xl sm:px-6 sm:py-4"
 
             >
 

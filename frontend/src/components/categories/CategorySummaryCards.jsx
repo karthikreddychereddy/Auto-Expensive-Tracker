@@ -1,97 +1,188 @@
 import {
-    FaLayerGroup,
-    FaArrowDown,
-    FaArrowUp,
+  FaLayerGroup,
+  FaIcons,
+  FaPalette,
+  FaAlignLeft,
 } from "react-icons/fa";
 
-import { useCategory } from "../../context/CategoryContext";
+import {
+  useCategory,
+} from "../../context/CategoryContext";
 
 export default function CategorySummaryCards() {
+  const {
+    categories,
+  } = useCategory();
 
-    const {
+  const totalCategories =
+    categories.length;
 
+  const categoriesWithIcons =
+    categories.filter(
+      item =>
+        Boolean(
+          item.icon?.trim()
+        )
+    ).length;
+
+  const categoriesWithColors =
+    categories.filter(
+      item =>
+        Boolean(
+          item.color?.trim()
+        )
+    ).length;
+
+  const categoriesWithDescriptions =
+    categories.filter(
+      item =>
+        Boolean(
+          item.description?.trim()
+        )
+    ).length;
+
+  const cards = [
+    {
+      title:
+        "Total Categories",
+
+      value:
         totalCategories,
 
-        incomeCategories,
+      subtitle:
+        "Available categories",
 
-        expenseCategories,
+      icon:
+        <FaLayerGroup />,
 
-    } = useCategory();
+      color:
+        "bg-blue-500",
 
-    const cards = [
+      bg:
+        "bg-blue-50 dark:bg-blue-950/20",
+    },
+    {
+      title:
+        "With Icons",
 
-        {
-            title: "Total Categories",
-            value: totalCategories,
-            icon: <FaLayerGroup />,
-            color: "bg-blue-500",
-            bg: "bg-blue-50",
-        },
+      value:
+        categoriesWithIcons,
 
-        {
-            title: "Expense Categories",
-            value: expenseCategories,
-            icon: <FaArrowDown />,
-            color: "bg-red-500",
-            bg: "bg-red-50",
-        },
+      subtitle:
+        "Customized icons",
 
-        {
-            title: "Income Categories",
-            value: incomeCategories,
-            icon: <FaArrowUp />,
-            color: "bg-green-500",
-            bg: "bg-green-50",
-        },
+      icon:
+        <FaIcons />,
 
-    ];
+      color:
+        "bg-purple-500",
 
-    return (
+      bg:
+        "bg-purple-50 dark:bg-purple-950/20",
+    },
+    {
+      title:
+        "With Colors",
 
-        <div className="grid md:grid-cols-3 gap-6">
+      value:
+        categoriesWithColors,
 
-            {cards.map(card=>(
+      subtitle:
+        "Color coded",
 
-                <div
+      icon:
+        <FaPalette />,
 
-                    key={card.title}
+      color:
+        "bg-orange-500",
 
-                    className={`${card.bg} rounded-3xl p-6 border`}
+      bg:
+        "bg-orange-50 dark:bg-orange-950/20",
+    },
+    {
+      title:
+        "Descriptions",
 
-                >
+      value:
+        categoriesWithDescriptions,
 
-                    <div className="flex justify-between">
+      subtitle:
+        "Categories explained",
 
-                        <div>
+      icon:
+        <FaAlignLeft />,
 
-                            <p className="text-gray-500">
+      color:
+        "bg-green-500",
 
-                                {card.title}
+      bg:
+        "bg-green-50 dark:bg-green-950/20",
+    },
+  ];
 
-                            </p>
+  return (
+    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 xl:grid-cols-4 xl:gap-6">
 
-                            <h2 className="text-4xl font-bold mt-3">
+      {cards.map(
+        card => (
+          <div
+            key={
+              card.title
+            }
+            className={`
+              ${card.bg}
+              rounded-3xl
+              border
+              border-slate-100
+              p-6
+              transition
+              hover:-translate-y-1
+              hover:shadow-lg
+              dark:border-slate-800
+            `}
+          >
 
-                                {card.value}
+            <div className="flex items-start justify-between gap-4">
 
-                            </h2>
+              <div>
 
-                        </div>
+                <p className="text-sm text-slate-500 dark:text-slate-400">
+                  {card.title}
+                </p>
 
-                        <div className={`${card.color} w-14 h-14 rounded-2xl text-white flex items-center justify-center`}>
+                <h2 className="mt-3 text-4xl font-bold text-slate-800 dark:text-white">
+                  {card.value}
+                </h2>
 
-                            {card.icon}
+                <p className="mt-3 text-sm text-slate-500 dark:text-slate-400">
+                  {card.subtitle}
+                </p>
 
-                        </div>
+              </div>
 
-                    </div>
+              <div
+                className={`
+                  ${card.color}
+                  flex
+                  h-14
+                  w-14
+                  shrink-0
+                  items-center
+                  justify-center
+                  rounded-2xl
+                  text-xl
+                  text-white
+                `}
+              >
+                {card.icon}
+              </div>
 
-                </div>
+            </div>
 
-            ))}
+          </div>
+        )
+      )}
 
-        </div>
-
-    );
-
+    </div>
+  );
 }

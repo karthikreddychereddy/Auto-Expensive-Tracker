@@ -1,129 +1,269 @@
-import { FaSearch } from "react-icons/fa";
+import {
+  FaSearch,
+  FaTimes,
+} from "react-icons/fa";
 
-export default function IncomeToolbar({
+import {
+  useIncome,
+} from "../../context/IncomeContext";
 
-  search,
-  setSearch,
+export default function IncomeToolbar() {
+  const {
+    search,
+    setSearch,
 
-  sourceFilter,
-  setSourceFilter,
+    sourceFilter,
+    setSourceFilter,
 
-  dateFilter,
-  setDateFilter,
+    incomeSources,
 
-  sortBy,
-  setSortBy,
+    dateFilter,
+    setDateFilter,
 
-}) {
+    sortBy,
+    setSortBy,
+
+    clearFilters,
+  } = useIncome();
+
+  const hasFilters =
+    search.trim() !== "" ||
+    sourceFilter !==
+      "All" ||
+    dateFilter !== "All" ||
+    sortBy !== "newest";
 
   return (
+    <div
+      className="
+        rounded-3xl
+        border
+        border-slate-200
+        bg-white
+        p-5
+        shadow-sm
+        dark:border-slate-700
+        dark:bg-slate-800
+      "
+    >
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
 
-    <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-5">
-
-      <div className="grid lg:grid-cols-4 gap-5">
-
-        {/* Search */}
+        {/* SEARCH */}
 
         <div className="relative">
 
-          <FaSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"/>
+          <FaSearch
+            className="
+              absolute
+              left-4
+              top-1/2
+              -translate-y-1/2
+              text-slate-400
+            "
+          />
 
           <input
-
-            type="text"
-
+            type="search"
             placeholder="Search income..."
-
             value={search}
-
-            onChange={(e)=>setSearch(e.target.value)}
-
-            className="w-full border rounded-xl pl-11 pr-4 py-3 outline-none focus:border-[#0B6B57]"
-
+            onChange={event =>
+              setSearch(
+                event.target.value
+              )
+            }
+            className="
+              w-full
+              rounded-xl
+              border
+              border-slate-200
+              bg-slate-50
+              py-3
+              pl-12
+              pr-4
+              text-slate-800
+              outline-none
+              transition
+              focus:border-[#0B6B57]
+              focus:ring-2
+              focus:ring-[#0B6B57]/10
+              dark:border-slate-700
+              dark:bg-slate-800
+              dark:text-white
+              dark:placeholder:text-slate-500
+            "
           />
 
         </div>
 
-        {/* Source */}
+        {/* SOURCE */}
 
         <select
-
-          value={sourceFilter}
-
-          onChange={(e)=>setSourceFilter(e.target.value)}
-
-          className="border rounded-xl px-4 py-3 outline-none focus:border-[#0B6B57]"
-
+          value={
+            sourceFilter
+          }
+          onChange={event =>
+            setSourceFilter(
+              event.target.value
+            )
+          }
+          className="
+            rounded-xl
+            border
+            border-slate-200
+            bg-white
+            px-4
+            py-3
+            text-slate-800
+            outline-none
+            transition
+            focus:border-[#0B6B57]
+            dark:border-slate-700
+            dark:bg-slate-800
+            dark:text-white
+          "
         >
+          <option value="All">
+            All Sources
+          </option>
 
-          <option>All</option>
-
-          <option>Salary</option>
-
-          <option>Freelancing</option>
-
-          <option>Business</option>
-
-          <option>Rental</option>
-
-          <option>Interest</option>
-
-          <option>Bonus</option>
-
-          <option>Other</option>
+          {incomeSources.map(
+            source => (
+              <option
+                key={source}
+                value={source}
+              >
+                {source}
+              </option>
+            )
+          )}
 
         </select>
 
-        {/* Date */}
+        {/* DATE */}
 
         <select
-
           value={dateFilter}
-
-          onChange={(e)=>setDateFilter(e.target.value)}
-
-          className="border rounded-xl px-4 py-3 outline-none focus:border-[#0B6B57]"
-
+          onChange={event =>
+            setDateFilter(
+              event.target.value
+            )
+          }
+          className="
+            rounded-xl
+            border
+            border-slate-200
+            bg-white
+            px-4
+            py-3
+            text-slate-800
+            outline-none
+            transition
+            focus:border-[#0B6B57]
+            dark:border-slate-700
+            dark:bg-slate-800
+            dark:text-white
+          "
         >
+          <option value="All">
+            All Dates
+          </option>
 
-          <option>All</option>
+          <option value="Today">
+            Today
+          </option>
 
-          <option>Today</option>
+          <option value="This Week">
+            This Week
+          </option>
 
-          <option>This Week</option>
+          <option value="This Month">
+            Selected Month
+          </option>
 
-          <option>This Month</option>
-
-          <option>Last Month</option>
+          <option value="Last Month">
+            Previous Month
+          </option>
 
         </select>
 
-        {/* Sort */}
+        {/* SORT */}
 
         <select
-
           value={sortBy}
-
-          onChange={(e)=>setSortBy(e.target.value)}
-
-          className="border rounded-xl px-4 py-3 outline-none focus:border-[#0B6B57]"
-
+          onChange={event =>
+            setSortBy(
+              event.target.value
+            )
+          }
+          className="
+            rounded-xl
+            border
+            border-slate-200
+            bg-white
+            px-4
+            py-3
+            text-slate-800
+            outline-none
+            transition
+            focus:border-[#0B6B57]
+            dark:border-slate-700
+            dark:bg-slate-800
+            dark:text-white
+          "
         >
+          <option value="newest">
+            Newest
+          </option>
 
-          <option value="newest">Newest</option>
+          <option value="oldest">
+            Oldest
+          </option>
 
-          <option value="oldest">Oldest</option>
+          <option value="highest">
+            Highest Amount
+          </option>
 
-          <option value="highest">Highest Amount</option>
-
-          <option value="lowest">Lowest Amount</option>
+          <option value="lowest">
+            Lowest Amount
+          </option>
 
         </select>
 
       </div>
 
+      {hasFilters && (
+        <div className="mt-4 flex justify-end">
+
+          <button
+            type="button"
+            onClick={
+              clearFilters
+            }
+            className="
+              flex
+              items-center
+              gap-2
+              rounded-xl
+              px-4
+              py-2
+              text-sm
+              font-medium
+              text-slate-500
+              transition
+              hover:bg-slate-100
+              hover:text-slate-800
+              dark:hover:bg-slate-800
+              dark:hover:text-white
+            "
+          >
+            <FaTimes size={12} />
+
+            Clear Filters
+          </button>
+
+        </div>
+      )}
+
     </div>
-
   );
-
 }

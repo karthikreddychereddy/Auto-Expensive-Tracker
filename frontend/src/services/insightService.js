@@ -2,21 +2,95 @@ import api from "./api";
 
 export const insightService = {
 
-    getInsights: () =>
-        api.get("/insights").then(res => res.data),
+  getInsights: month =>
+    api
+      .get(
+        "/insights",
+        {
+          params: {
+            month,
+          },
+        }
+      )
+      .then(
+        response =>
+          response.data
+      ),
 
-    getCategoryBreakdown: () =>
-        api.get("/insights/category-breakdown").then(res => res.data),
+  getCategoryBreakdown: month =>
+    api
+      .get(
+        "/insights/category-breakdown",
+        {
+          params: {
+            month,
+          },
+        }
+      )
+      .then(
+        response =>
+          response.data
+      ),
 
-    getMonthlyTrend: () =>
-        api.get("/insights/monthly-trend").then(res => res.data),
+  getMonthlyTrend: month =>
+    api
+      .get(
+        "/insights/monthly-trend",
+        {
+          params: {
+            month,
+          },
+        }
+      )
+      .then(
+        response =>
+          response.data
+      ),
 
-    getWeeklyExpense: () =>
-        api.get("/insights/weekly-expense").then(res => res.data),
+  getWeeklyExpense: month =>
+    api
+      .get(
+        "/insights/weekly-expense",
+        {
+          params: {
+            month,
+          },
+        }
+      )
+      .then(
+        response =>
+          response.data
+      ),
 
-    getRecentTransactions: () =>
-        api.get("/insights/recent-transactions").then(res => res.data)
+  getRecentTransactions: month =>
+    api
+      .get(
+        "/insights/recent-transactions",
+        {
+          params: {
+            month,
+          },
+        }
+      )
+      .then(
+        response =>
+          response.data
+      ),
 
+  getPaymentMethods: month =>
+    api
+      .get(
+        "/insights/payment-methods",
+        {
+          params: {
+            month,
+          },
+        }
+      )
+      .then(
+        response =>
+          response.data
+      ),
 };
 
 export default insightService;

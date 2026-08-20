@@ -63,7 +63,7 @@ export default function ProfileInformation() {
 
       </div>
 
-      <div className="grid md:grid-cols-2 gap-6 p-6">
+      <div className="grid grid-cols-1 gap-4 sm:gap-6 md:grid-cols-2 p-6">
 
         {fields.map((field) => (
 

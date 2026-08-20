@@ -11,7 +11,7 @@ export default function ExpenseFilters() {
 
   return (
 
-    <div className="flex flex-wrap gap-4">
+    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:flex lg:flex-wrap lg:gap-4">
 
       <select
         value={categoryFilter}

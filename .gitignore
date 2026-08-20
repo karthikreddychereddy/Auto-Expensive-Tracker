@@ -1,0 +1,26 @@
+# Secret cleanup file
+replacements.txt
+
+# Environment files
+.env
+.env.*
+frontend/.env
+frontend/.env.*
+backend/.env
+backend/.env.*
+
+# Keep safe examples
+!frontend/.env.example
+!backend/.env.example
+
+# Dependencies / builds
+node_modules/
+frontend/node_modules/
+frontend/dist/
+backend/target/
+
+# Archives
+*.zip
+
+# Logs
+*.log

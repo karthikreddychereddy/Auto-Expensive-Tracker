@@ -5,287 +5,877 @@ import com.paisatrack.backend.dto.InsightResponse;
 import com.paisatrack.backend.dto.MonthlyTrendResponse;
 import com.paisatrack.backend.dto.RecentTransactionResponse;
 import com.paisatrack.backend.dto.WeeklyExpenseResponse;
+
 import com.paisatrack.backend.entity.Expense;
 import com.paisatrack.backend.entity.Goal;
 import com.paisatrack.backend.entity.Income;
 import com.paisatrack.backend.entity.User;
+
 import com.paisatrack.backend.repository.ExpenseRepository;
 import com.paisatrack.backend.repository.GoalRepository;
 import com.paisatrack.backend.repository.IncomeRepository;
 import com.paisatrack.backend.repository.SavingsRepository;
 import com.paisatrack.backend.repository.UserRepository;
+import com.paisatrack.backend.dto.PaymentMethodBreakdownResponse;
+
 import com.paisatrack.backend.service.InsightService;
+
 import com.paisatrack.backend.util.SecurityUtil;
+
 import lombok.RequiredArgsConstructor;
+
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-import java.time.Month;
+
+import java.time.LocalDate;
+import java.time.YearMonth;
+import java.time.format.DateTimeFormatter;
+
 import java.time.temporal.WeekFields;
-import java.util.Locale;
+
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-public class InsightServiceImpl implements InsightService {
+public class InsightServiceImpl
+        implements InsightService {
 
-    private final ExpenseRepository expenseRepository;
-    private final IncomeRepository incomeRepository;
-    private final SavingsRepository savingsRepository;
-    private final GoalRepository goalRepository;
-    private final UserRepository userRepository;
+        private final ExpenseRepository
+                expenseRepository;
 
-    private User getCurrentUser() {
+        private final IncomeRepository
+                incomeRepository;
 
-        String email = SecurityUtil.getCurrentUserEmail();
+        private final SavingsRepository
+                savingsRepository;
 
-        return userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-    }
+        private final GoalRepository
+                goalRepository;
 
-    @Override
-    public InsightResponse getInsights() {
+        private final UserRepository
+                userRepository;
 
-        User user = getCurrentUser();
+        // ==========================================
+        // CURRENT USER
+        // ==========================================
 
-        List<Expense> expenses = expenseRepository.findByUser(user);
-        List<Income> incomes = incomeRepository.findByUser(user);
+        private User getCurrentUser() {
 
-        BigDecimal totalIncome = incomes.stream()
-                .map(Income::getAmount)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
+                String email =
+                        SecurityUtil
+                                .getCurrentUserEmail();
 
-        BigDecimal totalExpense = expenses.stream()
-                .map(Expense::getAmount)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-
-        BigDecimal totalSavings = savingsRepository.findByUser(user)
-                .stream()
-                .map(s -> s.getAmount())
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-
-        BigDecimal balance = totalIncome
-                .subtract(totalExpense)
-                .subtract(totalSavings);
-
-        List<Goal> goals = goalRepository.findByUser(user);
-
-        long totalGoals = goals.size();
-
-        long completedGoals = goals.stream()
-                .filter(g -> "COMPLETED".equalsIgnoreCase(g.getStatus()))
-                .count();
-
-        String highestCategory = expenses.stream()
-                .collect(Collectors.groupingBy(
-                        Expense::getCategory,
-                        Collectors.reducing(
-                                BigDecimal.ZERO,
-                                Expense::getAmount,
-                                BigDecimal::add
+                return userRepository
+                        .findByEmail(
+                                email
                         )
-                ))
-                .entrySet()
-                .stream()
-                .max(Map.Entry.comparingByValue())
-                .map(Map.Entry::getKey)
-                .orElse("N/A");
-
-        double savingsRate = 0;
-        double expenseRate = 0;
-
-        if (totalIncome.compareTo(BigDecimal.ZERO) > 0) {
-
-            savingsRate = totalSavings
-                    .multiply(BigDecimal.valueOf(100))
-                    .divide(totalIncome, 2, RoundingMode.HALF_UP)
-                    .doubleValue();
-
-            expenseRate = totalExpense
-                    .multiply(BigDecimal.valueOf(100))
-                    .divide(totalIncome, 2, RoundingMode.HALF_UP)
-                    .doubleValue();
+                        .orElseThrow(() ->
+                                new RuntimeException(
+                                        "User not found"
+                                )
+                        );
         }
 
-        String health;
+        // ==========================================
+        // RESOLVE MONTH
+        // ==========================================
 
-        if (savingsRate >= 30) {
-            health = "Excellent";
-        } else if (savingsRate >= 20) {
-            health = "Good";
-        } else if (savingsRate >= 10) {
-            health = "Average";
-        } else {
-            health = "Poor";
-        }
+        private YearMonth resolveMonth(
+                String month
+        ) {
 
-        return InsightResponse.builder()
-                .totalIncome(totalIncome)
-                .totalExpense(totalExpense)
-                .totalSavings(totalSavings)
-                .balance(balance)
-                .highestExpenseCategory(highestCategory)
-                .totalGoals(totalGoals)
-                .completedGoals(completedGoals)
-                .savingsRate(savingsRate)
-                .expenseRate(expenseRate)
-                .financialHealth(health)
-                .build();
-    }
+                if (
+                        month == null ||
+                        month.isBlank()
+                ) {
+                return YearMonth.now();
+                }
 
-    @Override
-    public List<CategoryBreakdownResponse> getCategoryBreakdown() {
+                try {
 
-        User user = getCurrentUser();
+                return YearMonth.parse(
+                        month.trim()
+                );
 
-        return expenseRepository.findByUser(user)
-                .stream()
-                .collect(Collectors.groupingBy(
-                        Expense::getCategory,
-                        Collectors.reducing(
-                                BigDecimal.ZERO,
-                                Expense::getAmount,
-                                BigDecimal::add
-                        )
-                ))
-                .entrySet()
-                .stream()
-                .map(entry -> CategoryBreakdownResponse.builder()
-                        .category(entry.getKey())
-                        .amount(entry.getValue())
-                        .build())
-                .sorted(Comparator.comparing(CategoryBreakdownResponse::getAmount).reversed())
-                .toList();
-    }
-        @Override
-        public List<MonthlyTrendResponse> getMonthlyTrend() {
+                } catch (
+                        Exception exception
+                ) {
 
-        User user = getCurrentUser();
-
-        List<Expense> expenses = expenseRepository.findByUser(user);
-        List<Income> incomes = incomeRepository.findByUser(user);
-
-        Map<Month, BigDecimal> expenseMap = expenses.stream()
-                .collect(Collectors.groupingBy(
-                        expense -> expense.getExpenseDate().getMonth(),
-                        Collectors.reducing(
-                                BigDecimal.ZERO,
-                                Expense::getAmount,
-                                BigDecimal::add
-                        )
-                ));
-
-        Map<Month, BigDecimal> incomeMap = incomes.stream()
-                .collect(Collectors.groupingBy(
-                        income -> income.getIncomeDate().getMonth(),
-                        Collectors.reducing(
-                                BigDecimal.ZERO,
-                                Income::getAmount,
-                                BigDecimal::add
-                        )
-                ));
-
-        List<MonthlyTrendResponse> response = new java.util.ArrayList<>();
-
-        for (Month month : Month.values()) {
-
-                if (expenseMap.containsKey(month) || incomeMap.containsKey(month)) {
-
-                response.add(
-                        MonthlyTrendResponse.builder()
-                                .month(month.name())
-                                .income(incomeMap.getOrDefault(month, BigDecimal.ZERO))
-                                .expense(expenseMap.getOrDefault(month, BigDecimal.ZERO))
-                                .build()
+                throw new RuntimeException(
+                        "Invalid month. Expected format YYYY-MM."
                 );
                 }
         }
 
-        return response;
+        // ==========================================
+        // DATE BELONGS TO MONTH
+        // ==========================================
+
+        private boolean isInMonth(
+                LocalDate date,
+                YearMonth month
+        ) {
+
+                if (
+                        date == null
+                ) {
+                return false;
+                }
+
+                return YearMonth
+                        .from(
+                                date
+                        )
+                        .equals(
+                                month
+                        );
+        }
+
+        // ==========================================
+        // MONTH EXPENSES
+        // ==========================================
+
+        private List<Expense>
+        getExpensesForMonth(
+                User user,
+                YearMonth month
+        ) {
+
+                return expenseRepository
+                        .findByUser(
+                                user
+                        )
+                        .stream()
+                        .filter(
+                                expense ->
+                                        isInMonth(
+                                                expense.getExpenseDate(),
+                                                month
+                                        )
+                        )
+                        .toList();
+        }
+
+        // ==========================================
+        // MONTH INCOME
+        // ==========================================
+
+        private List<Income>
+        getIncomeForMonth(
+                User user,
+                YearMonth month
+        ) {
+
+                return incomeRepository
+                        .findByUser(
+                                user
+                        )
+                        .stream()
+                        .filter(
+                                income ->
+                                        isInMonth(
+                                                income.getIncomeDate(),
+                                                month
+                                        )
+                        )
+                        .toList();
+        }
+
+        // ==========================================
+        // OVERVIEW
+        // ==========================================
+
+        @Override
+        public InsightResponse getInsights(
+                String monthValue
+        ) {
+
+                User user =
+                        getCurrentUser();
+
+                YearMonth month =
+                        resolveMonth(
+                                monthValue
+                        );
+
+                List<Expense> expenses =
+                        getExpensesForMonth(
+                                user,
+                                month
+                        );
+
+                List<Income> incomes =
+                        getIncomeForMonth(
+                                user,
+                                month
+                        );
+
+                BigDecimal totalIncome =
+                        incomes.stream()
+                                .map(
+                                        Income::getAmount
+                                )
+                                .reduce(
+                                        BigDecimal.ZERO,
+                                        BigDecimal::add
+                                );
+
+                BigDecimal totalExpense =
+                        expenses.stream()
+                                .map(
+                                        Expense::getAmount
+                                )
+                                .reduce(
+                                        BigDecimal.ZERO,
+                                        BigDecimal::add
+                                );
+
+                BigDecimal totalSavings =
+                        savingsRepository
+                                .findByUser(
+                                        user
+                                )
+                                .stream()
+                                .filter(
+                                        saving ->
+                                                isInMonth(
+                                                        saving.getSavingDate(),
+                                                        month
+                                                )
+                                )
+                                .map(
+                                        saving ->
+                                                saving.getAmount()
+                                )
+                                .reduce(
+                                        BigDecimal.ZERO,
+                                        BigDecimal::add
+                                );
+
+                BigDecimal balance =
+                        totalIncome
+                                .subtract(
+                                        totalExpense
+                                )
+                                .subtract(
+                                        totalSavings
+                                );
+
+                /*
+                * Goals are not strictly monthly records,
+                * so they remain account-level.
+                */
+                List<Goal> goals =
+                        goalRepository
+                                .findByUser(
+                                        user
+                                );
+
+                long totalGoals =
+                        goals.size();
+
+                long completedGoals =
+                        goals.stream()
+                                .filter(
+                                        goal ->
+                                                "COMPLETED"
+                                                        .equalsIgnoreCase(
+                                                                goal.getStatus()
+                                                        )
+                                )
+                                .count();
+
+                String highestCategory =
+                        expenses.stream()
+                                .collect(
+                                        Collectors.groupingBy(
+                                                Expense::getCategory,
+
+                                                Collectors.reducing(
+                                                        BigDecimal.ZERO,
+                                                        Expense::getAmount,
+                                                        BigDecimal::add
+                                                )
+                                        )
+                                )
+                                .entrySet()
+                                .stream()
+                                .max(
+                                        Map.Entry
+                                                .comparingByValue()
+                                )
+                                .map(
+                                        Map.Entry::getKey
+                                )
+                                .orElse(
+                                        "N/A"
+                                );
+
+                double savingsRate =
+                        0;
+
+                double expenseRate =
+                        0;
+
+                if (
+                        totalIncome.compareTo(
+                                BigDecimal.ZERO
+                        ) > 0
+                ) {
+
+                savingsRate =
+                        totalSavings
+                                .multiply(
+                                        BigDecimal.valueOf(
+                                                100
+                                        )
+                                )
+                                .divide(
+                                        totalIncome,
+                                        2,
+                                        RoundingMode.HALF_UP
+                                )
+                                .doubleValue();
+
+                expenseRate =
+                        totalExpense
+                                .multiply(
+                                        BigDecimal.valueOf(
+                                                100
+                                        )
+                                )
+                                .divide(
+                                        totalIncome,
+                                        2,
+                                        RoundingMode.HALF_UP
+                                )
+                                .doubleValue();
+                }
+
+                String health;
+
+                /*
+                * For a month with no income,
+                * do not incorrectly call it Excellent.
+                */
+                if (
+                        totalIncome.compareTo(
+                                BigDecimal.ZERO
+                        ) <= 0
+                ) {
+
+                health =
+                        "No Data";
+
+                } else if (
+                        savingsRate >= 30
+                ) {
+
+                health =
+                        "Excellent";
+
+                } else if (
+                        savingsRate >= 20
+                ) {
+
+                health =
+                        "Good";
+
+                } else if (
+                        savingsRate >= 10
+                ) {
+
+                health =
+                        "Average";
+
+                } else {
+
+                health =
+                        "Poor";
+                }
+
+                return InsightResponse
+                        .builder()
+                        .totalIncome(
+                                totalIncome
+                        )
+                        .totalExpense(
+                                totalExpense
+                        )
+                        .totalSavings(
+                                totalSavings
+                        )
+                        .balance(
+                                balance
+                        )
+                        .highestExpenseCategory(
+                                highestCategory
+                        )
+                        .totalGoals(
+                                totalGoals
+                        )
+                        .completedGoals(
+                                completedGoals
+                        )
+                        .savingsRate(
+                                savingsRate
+                        )
+                        .expenseRate(
+                                expenseRate
+                        )
+                        .financialHealth(
+                                health
+                        )
+                        .build();
+        }
+
+        // ==========================================
+        // CATEGORY BREAKDOWN
+        // ==========================================
+
+        @Override
+        public List<CategoryBreakdownResponse>
+        getCategoryBreakdown(
+                String monthValue
+        ) {
+
+                User user =
+                        getCurrentUser();
+
+                YearMonth month =
+                        resolveMonth(
+                                monthValue
+                        );
+
+                return getExpensesForMonth(
+                        user,
+                        month
+                )
+                        .stream()
+                        .collect(
+                                Collectors.groupingBy(
+                                        Expense::getCategory,
+
+                                        Collectors.reducing(
+                                                BigDecimal.ZERO,
+                                                Expense::getAmount,
+                                                BigDecimal::add
+                                        )
+                                )
+                        )
+                        .entrySet()
+                        .stream()
+                        .map(
+                                entry ->
+                                        CategoryBreakdownResponse
+                                                .builder()
+                                                .category(
+                                                        entry.getKey()
+                                                )
+                                                .amount(
+                                                        entry.getValue()
+                                                )
+                                                .build()
+                        )
+                        .sorted(
+                                Comparator
+                                        .comparing(
+                                                CategoryBreakdownResponse::getAmount
+                                        )
+                                        .reversed()
+                        )
+                        .toList();
+        }
+
+        // ==========================================
+        // MONTHLY TREND
+        //
+        // Last 6 months ending at selected month.
+        // ==========================================
+
+        @Override
+        public List<MonthlyTrendResponse>
+        getMonthlyTrend(
+                String monthValue
+        ) {
+
+                User user =
+                        getCurrentUser();
+
+                YearMonth selectedMonth =
+                        resolveMonth(
+                                monthValue
+                        );
+
+                List<Expense> expenses =
+                        expenseRepository
+                                .findByUser(
+                                        user
+                                );
+
+                List<Income> incomes =
+                        incomeRepository
+                                .findByUser(
+                                        user
+                                );
+
+                List<MonthlyTrendResponse>
+                        response =
+                        new ArrayList<>();
+
+                DateTimeFormatter formatter =
+                        DateTimeFormatter.ofPattern(
+                                "MMM yyyy"
+                        );
+
+                for (
+                        int offset = 5;
+                        offset >= 0;
+                        offset--
+                ) {
+
+                YearMonth month =
+                        selectedMonth.minusMonths(
+                                offset
+                        );
+
+                BigDecimal income =
+                        incomes.stream()
+                                .filter(
+                                        item ->
+                                                isInMonth(
+                                                        item.getIncomeDate(),
+                                                        month
+                                                )
+                                )
+                                .map(
+                                        Income::getAmount
+                                )
+                                .reduce(
+                                        BigDecimal.ZERO,
+                                        BigDecimal::add
+                                );
+
+                BigDecimal expense =
+                        expenses.stream()
+                                .filter(
+                                        item ->
+                                                isInMonth(
+                                                        item.getExpenseDate(),
+                                                        month
+                                                )
+                                )
+                                .map(
+                                        Expense::getAmount
+                                )
+                                .reduce(
+                                        BigDecimal.ZERO,
+                                        BigDecimal::add
+                                );
+
+                response.add(
+                        MonthlyTrendResponse
+                                .builder()
+                                .month(
+                                        month
+                                                .atDay(
+                                                        1
+                                                )
+                                                .format(
+                                                        formatter
+                                                )
+                                )
+                                .income(
+                                        income
+                                )
+                                .expense(
+                                        expense
+                                )
+                                .build()
+                );
+                }
+
+                return response;
+        }
+
+        // ==========================================
+        // WEEKLY EXPENSE
+        // ==========================================
+
+        @Override
+        public List<WeeklyExpenseResponse>
+        getWeeklyExpense(
+                String monthValue
+        ) {
+
+                User user =
+                        getCurrentUser();
+
+                YearMonth month =
+                        resolveMonth(
+                                monthValue
+                        );
+
+                WeekFields weekFields =
+                        WeekFields.of(
+                                Locale.getDefault()
+                        );
+
+                Map<Integer, BigDecimal>
+                        weeklyData =
+                        getExpensesForMonth(
+                                user,
+                                month
+                        )
+                                .stream()
+                                .collect(
+                                        Collectors.groupingBy(
+                                                expense ->
+                                                        expense
+                                                                .getExpenseDate()
+                                                                .get(
+                                                                        weekFields
+                                                                                .weekOfMonth()
+                                                                ),
+
+                                                LinkedHashMap::new,
+
+                                                Collectors.reducing(
+                                                        BigDecimal.ZERO,
+                                                        Expense::getAmount,
+                                                        BigDecimal::add
+                                                )
+                                        )
+                                );
+
+                /*
+                * Always return Weeks 1-5 so the
+                * chart stays stable even when a
+                * selected month has no data.
+                */
+                List<WeeklyExpenseResponse>
+                        response =
+                        new ArrayList<>();
+
+                for (
+                        int week = 1;
+                        week <= 5;
+                        week++
+                ) {
+
+                response.add(
+                        WeeklyExpenseResponse
+                                .builder()
+                                .week(
+                                        "Week " +
+                                                week
+                                )
+                                .totalExpense(
+                                        weeklyData
+                                                .getOrDefault(
+                                                        week,
+                                                        BigDecimal.ZERO
+                                                )
+                                )
+                                .build()
+                );
+                }
+
+                return response;
+        }
+
+        // ==========================================
+        // RECENT TRANSACTIONS
+        // ==========================================
+
+        @Override
+        public List<RecentTransactionResponse>
+        getRecentTransactions(
+                String monthValue
+        ) {
+
+                User user =
+                        getCurrentUser();
+
+                YearMonth month =
+                        resolveMonth(
+                                monthValue
+                        );
+
+                List<RecentTransactionResponse>
+                        transactions =
+                        new ArrayList<>();
+
+                getExpensesForMonth(
+                        user,
+                        month
+                )
+                        .forEach(
+                                expense ->
+                                        transactions.add(
+
+                                                RecentTransactionResponse
+                                                        .builder()
+                                                        .id(
+                                                                expense.getId()
+                                                        )
+                                                        .transactionType(
+                                                                "EXPENSE"
+                                                        )
+                                                        .amount(
+                                                                expense.getAmount()
+                                                        )
+                                                        .category(
+                                                                expense.getCategory()
+                                                        )
+                                                        .description(
+                                                                expense.getDescription()
+                                                        )
+                                                        .date(
+                                                                expense.getExpenseDate()
+                                                        )
+                                                        .build()
+                                        )
+                        );
+
+                getIncomeForMonth(
+                        user,
+                        month
+                )
+                        .forEach(
+                                income ->
+                                        transactions.add(
+
+                                                RecentTransactionResponse
+                                                        .builder()
+                                                        .id(
+                                                                income.getId()
+                                                        )
+                                                        .transactionType(
+                                                                "INCOME"
+                                                        )
+                                                        .amount(
+                                                                income.getAmount()
+                                                        )
+                                                        .category(
+                                                                income.getCategory()
+                                                        )
+                                                        .description(
+                                                                income.getDescription()
+                                                        )
+                                                        .date(
+                                                                income.getIncomeDate()
+                                                        )
+                                                        .build()
+                                        )
+                        );
+
+                return transactions
+                        .stream()
+                        .sorted(
+                                Comparator
+                                        .comparing(
+                                                RecentTransactionResponse::getDate
+                                        )
+                                        .reversed()
+                        )
+                        .limit(
+                                10
+                        )
+                        .toList();
         }
         @Override
-        public List<WeeklyExpenseResponse> getWeeklyExpense() {
+        public List<PaymentMethodBreakdownResponse>
+        getPaymentMethodBreakdown(
+                String monthValue
+        ) {
 
-        User user = getCurrentUser();
+        User user =
+                getCurrentUser();
 
-        WeekFields weekFields = WeekFields.of(Locale.getDefault());
-
-        Map<Integer, BigDecimal> weeklyData = expenseRepository.findByUser(user)
-                .stream()
-                .collect(Collectors.groupingBy(
-                        expense -> expense.getExpenseDate().get(weekFields.weekOfMonth()),
-                        Collectors.reducing(
-                                BigDecimal.ZERO,
-                                Expense::getAmount,
-                                BigDecimal::add
-                        )
-                ));
-
-        return weeklyData.entrySet()
-                .stream()
-                .sorted(Map.Entry.comparingByKey())
-                .map(entry ->
-                        WeeklyExpenseResponse.builder()
-                                .week("Week " + entry.getKey())
-                                .totalExpense(entry.getValue())
-                                .build())
-                .toList();
-        }
-        @Override
-        public List<RecentTransactionResponse> getRecentTransactions() {
-
-        User user = getCurrentUser();
-
-        List<RecentTransactionResponse> transactions =
-                new java.util.ArrayList<>();
-
-        expenseRepository.findByUser(user)
-                .forEach(expense ->
-
-                        transactions.add(
-
-                                RecentTransactionResponse.builder()
-                                        .id(expense.getId())
-                                        .transactionType("EXPENSE")
-                                        .amount(expense.getAmount())
-                                        .category(expense.getCategory())
-                                        .description(expense.getDescription())
-                                        .date(expense.getExpenseDate())
-                                        .build()
-
-                        )
-
+        YearMonth month =
+                resolveMonth(
+                        monthValue
                 );
 
-        incomeRepository.findByUser(user)
-                .forEach(income ->
-
-                        transactions.add(
-
-                                RecentTransactionResponse.builder()
-                                        .id(income.getId())
-                                        .transactionType("INCOME")
-                                        .amount(income.getAmount())
-                                        .category(income.getCategory())
-                                        .description(income.getDescription())
-                                        .date(income.getIncomeDate())
-                                        .build()
-
-                        )
-
+        List<Expense> expenses =
+                getExpensesForMonth(
+                        user,
+                        month
                 );
 
-        return transactions.stream()
+        Map<String, List<Expense>>
+                groupedExpenses =
+                expenses.stream()
+                        .collect(
+                                Collectors.groupingBy(
+                                        expense -> {
+
+                                                String paymentMode =
+                                                        expense.getPaymentMode();
+
+                                                if (
+                                                        paymentMode == null ||
+                                                        paymentMode.isBlank()
+                                                ) {
+                                                return "Other";
+                                                }
+
+                                                return paymentMode.trim();
+                                        }
+                                )
+                        );
+
+        return groupedExpenses
+                .entrySet()
+                .stream()
+                .map(
+                        entry -> {
+
+                                BigDecimal amount =
+                                        entry.getValue()
+                                                .stream()
+                                                .map(
+                                                        Expense::getAmount
+                                                )
+                                                .reduce(
+                                                        BigDecimal.ZERO,
+                                                        BigDecimal::add
+                                                );
+
+                                return PaymentMethodBreakdownResponse
+                                        .builder()
+                                        .paymentMethod(
+                                                entry.getKey()
+                                        )
+                                        .amount(
+                                                amount
+                                        )
+                                        .transactionCount(
+                                                (long)
+                                                        entry
+                                                                .getValue()
+                                                                .size()
+                                        )
+                                        .build();
+                        }
+                )
                 .sorted(
-                        Comparator.comparing(RecentTransactionResponse::getDate)
+                        Comparator
+                                .comparing(
+                                        PaymentMethodBreakdownResponse::getAmount
+                                )
                                 .reversed()
                 )
-                .limit(10)
                 .toList();
         }
 }

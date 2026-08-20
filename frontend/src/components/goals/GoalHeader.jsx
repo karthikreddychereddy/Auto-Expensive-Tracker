@@ -7,17 +7,17 @@ export default function GoalHeader() {
 
     return (
 
-        <div className="flex justify-between items-center">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
 
             <div>
 
-                <h1 className="text-5xl font-bold">
+                <h1 className="text-3xl font-bold text-slate-800 dark:text-white sm:text-4xl lg:text-5xl">
 
                     Goals
 
                 </h1>
 
-                <p className="text-gray-500 mt-2">
+                <p className="mt-2 text-gray-500 dark:text-gray-400">
 
                     Track your financial goals.
 

@@ -25,7 +25,7 @@ export default function ExpensePieChart() {
   if (loading) {
 
     return (
-      <div className="bg-white rounded-2xl shadow border p-6 h-[400px] animate-pulse" />
+      <div className="h-[320px] min-w-0 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-800 sm:h-[380px] sm:p-6" />
     );
 
   }
@@ -39,15 +39,16 @@ export default function ExpensePieChart() {
 
   return (
 
-    <div className="bg-white rounded-2xl shadow border p-6 h-[400px]">
+    <div className="h-[320px] min-w-0 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-800 sm:h-[380px] sm:p-6">
 
-      <h2 className="text-2xl font-bold mb-6">
+      <h2 className="mb-4 text-xl font-bold text-slate-800 dark:text-white sm:mb-6 sm:text-2xl">
 
         Expense Distribution
 
       </h2>
 
-      <ResponsiveContainer width="100%" height="90%">
+      <div className="h-[240px] min-w-0 sm:h-[290px]">
+      <ResponsiveContainer width="100%" height="100%">
 
         <PieChart>
 
@@ -55,7 +56,7 @@ export default function ExpensePieChart() {
             data={data}
             dataKey="value"
             nameKey="name"
-            outerRadius={110}
+            outerRadius={90}
             label
           >
 
@@ -75,6 +76,7 @@ export default function ExpensePieChart() {
         </PieChart>
 
       </ResponsiveContainer>
+      </div>
 
     </div>
 

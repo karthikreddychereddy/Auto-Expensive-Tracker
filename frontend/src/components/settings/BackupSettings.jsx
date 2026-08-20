@@ -51,7 +51,7 @@ export default function BackupSettings() {
       </div>
 
       <div className="rounded-2xl border border-gray-200 p-5 mb-6">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <h3 className="font-semibold text-slate-800">
               Automatic Backup
@@ -126,7 +126,7 @@ export default function BackupSettings() {
         ))}
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <motion.button
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}

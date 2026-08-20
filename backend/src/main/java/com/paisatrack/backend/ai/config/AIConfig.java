@@ -8,13 +8,12 @@ import org.springframework.web.reactive.function.client.WebClient;
 @Configuration
 public class AIConfig {
 
-    @Value("${groq.api.url}")
-    private String groqApiUrl;
-
     @Bean
-    public WebClient groqWebClient(WebClient.Builder builder) {
+    public WebClient groqWebClient(
+            @Value("${groq.api.url}") String groqApiUrl
+    ) {
 
-        return builder
+        return WebClient.builder()
                 .baseUrl(groqApiUrl)
                 .build();
     }

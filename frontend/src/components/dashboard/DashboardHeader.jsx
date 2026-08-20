@@ -1,12 +1,6 @@
-import {
-  FaShieldAlt,
-  FaCalendarDay,
-} from "react-icons/fa";
-
-import MonthSelector from "../common/MonthSelector";
+import { FaShieldAlt, FaCalendarDay } from "react-icons/fa";
 
 export default function DashboardHeader({ user }) {
-
   const today = new Date().toLocaleDateString("en-IN", {
     weekday: "long",
     day: "numeric",
@@ -15,79 +9,37 @@ export default function DashboardHeader({ user }) {
   });
 
   return (
-
-    <div className="bg-white dark:bg-slate-800 rounded-3xl shadow-sm border border-gray-100 dark:border-slate-700 p-8 transition-colors duration-300">
-
-      <div className="flex flex-col lg:flex-row justify-between lg:items-center gap-8">
-
-        {/* Left */}
-
-        <div>
-
-          <p className="text-gray-500 dark:text-gray-400 text-sm mb-2 flex items-center gap-2">
-
-            <FaCalendarDay />
-
-            {today}
-
+    <section className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm transition-colors duration-300 dark:border-slate-700 dark:bg-slate-800 sm:rounded-3xl sm:p-6 lg:p-8">
+      <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between lg:gap-8">
+        <div className="min-w-0">
+          <p className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400 sm:text-sm">
+            <FaCalendarDay className="shrink-0" />
+            <span className="truncate sm:whitespace-normal">{today}</span>
           </p>
 
-          <h1 className="text-4xl font-bold text-slate-800 dark:text-white leading-tight">
-
-            Welcome back,
-
-            <span className="text-[#0B6B57]">
-
-              {" "}
-
-              {user?.name || "Karthik"}
-
-            </span>
-
+          <h1 className="mt-2 break-words text-2xl font-bold leading-tight text-slate-800 dark:text-white sm:text-3xl lg:text-4xl">
+            Welcome back,{" "}
+            <span className="text-[#0B6B57] dark:text-emerald-400">
+              {user?.name || "User"}
+            </span>{" "}
             👋
-
           </h1>
 
-          <p className="text-gray-500 dark:text-gray-400 mt-3 text-lg">
-
+          <p className="mt-2 text-sm text-gray-500 dark:text-gray-400 sm:mt-3 sm:text-base lg:text-lg">
             Here's your financial overview.
-
           </p>
-
         </div>
 
-        {/* Right */}
-
-        <div className="flex flex-col items-end gap-4">
-
-          <div className="flex items-center gap-3 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 px-5 py-3 rounded-2xl transition-colors duration-300">
-
-            <FaShieldAlt className="text-xl" />
-
-            <div>
-
-              <p className="font-semibold">
-
-                Financial Health
-
-              </p>
-
-              <p className="text-sm">
-
-                Good • Keep Saving 🚀
-
-              </p>
-
+        <div className="w-full lg:w-auto">
+          <div className="flex w-full items-center gap-3 rounded-2xl bg-green-50 px-4 py-3 text-green-700 transition-colors duration-300 dark:bg-green-900/20 dark:text-green-300 sm:px-5 lg:w-auto">
+            <FaShieldAlt className="shrink-0 text-lg sm:text-xl" />
+            <div className="min-w-0">
+              <p className="font-semibold">Financial Health</p>
+              <p className="text-xs sm:text-sm">Good • Keep Saving 🚀</p>
             </div>
-
           </div>
-
         </div>
-
       </div>
-
-    </div>
-
+    </section>
   );
-
 }

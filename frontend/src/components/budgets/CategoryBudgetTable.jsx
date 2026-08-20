@@ -38,9 +38,9 @@ export default function CategoryBudgetTable() {
 
         {/* Table */}
         <div className="overflow-x-auto">
-          <table className="w-full table-fixed">
+          <table className="min-w-[900px] w-full table-fixed">
 
-            <thead className="bg-slate-100">
+            <thead className="bg-slate-100 dark:bg-slate-900 dark:text-slate-200">
               <tr>
                 <th className="w-[22%] px-6 py-4 text-left font-semibold">
                   Category

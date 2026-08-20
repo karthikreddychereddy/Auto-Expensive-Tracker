@@ -8,39 +8,45 @@ import java.util.List;
 
 public interface NotificationService {
 
-    // ==========================================
-    // Notifications
-    // ==========================================
+        // ==========================================
+        // Notifications
+        // ==========================================
 
-    List<NotificationResponse> getNotifications();
+        List<NotificationResponse> getNotifications();
 
-    Long getUnreadCount();
+        Long getUnreadCount();
 
-    void markAsRead(Long notificationId);
+        void markAsRead(Long notificationId);
 
-    void markAllAsRead();
+        void markAllAsRead();
 
-    void deleteNotification(Long notificationId);
+        void deleteNotification(Long notificationId);
 
-    // ==========================================
-    // Reminder Settings
-    // ==========================================
+        // ==========================================
+        // Reminder Settings
+        // ==========================================
 
-    NotificationSettingResponse getSettings();
+        NotificationSettingResponse getSettings();
 
-    NotificationSettingResponse saveSettings(
-            NotificationSettingRequest request
-    );
+        NotificationSettingResponse saveSettings(
+                NotificationSettingRequest request
+        );
 
-    // ==========================================
-    // Scheduler Support
-    // ==========================================
+        // ==========================================
+        // Scheduler Support
+        // ==========================================
 
-    void createReminderNotification(
-            Long userId,
-            String title,
-            String message,
-            String type
-    );
+        void createReminderNotification(
+                Long userId,
+                String title,
+                String message,
+                String type
+        );
 
+        void createSystemNotification(
+                Long userId,
+                String title,
+                String message,
+                String type
+        );
 }

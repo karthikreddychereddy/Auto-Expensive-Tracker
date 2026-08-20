@@ -23,5 +23,4 @@ public class AIConversationResponse {
     private LocalDateTime updatedAt;
 
     private List<AIMessageResponse> messages;
-
 }

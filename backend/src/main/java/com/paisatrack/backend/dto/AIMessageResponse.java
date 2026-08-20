@@ -19,4 +19,11 @@ public class AIMessageResponse {
 
     private LocalDateTime createdAt;
 
+    private Boolean hasAttachment;
+
+    private String attachmentName;
+
+    private String attachmentType;
+
+    private Long attachmentSize;
 }

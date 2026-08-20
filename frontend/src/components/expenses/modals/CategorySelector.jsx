@@ -1,59 +1,133 @@
-import { EXPENSE_CATEGORIES } from "../../../constants/expenseConstants";
+import {
+  FaLayerGroup,
+} from "react-icons/fa";
+
+import {
+  useCategory,
+} from "../../../context/CategoryContext";
 
 export default function CategorySelector({
-    selectedCategory,
-    onSelect,
-    error,
+  selectedCategory,
+  onSelect,
+  error,
 }) {
-    return (
-        <div>
-            <label className="font-semibold text-gray-700">
-                Choose Category
-            </label>
+  const {
+    categories,
+    loading,
+  } = useCategory();
 
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mt-3">
+  return (
+    <div>
 
-                {EXPENSE_CATEGORIES.map((category) => (
+      <label className="font-semibold text-gray-700 dark:text-slate-200">
+        Choose Category
+      </label>
 
-                    <button
-                        key={category.id}
-                        type="button"
-                        onClick={() => onSelect(category.name)}
-                        className={`border rounded-xl p-4 transition-all duration-200
+      {loading ? (
+        <div className="mt-3 rounded-xl border border-slate-200 p-4 text-center text-sm text-slate-500 dark:border-slate-700">
+          Loading categories...
+        </div>
+      ) : categories.length === 0 ? (
+        <div className="mt-3 rounded-xl border border-dashed border-slate-300 p-5 text-center dark:border-slate-700">
 
-                        ${
-                            selectedCategory === category.name
-                                ? "bg-[#0B6B57] text-white border-[#0B6B57]"
-                                : "hover:bg-green-50"
-                        }`}
-                    >
+          <FaLayerGroup
+            className="mx-auto text-2xl text-slate-400"
+          />
 
-                        <div className="text-3xl">
-
-                            {category.icon}
-
-                        </div>
-
-                        <p className="mt-2 font-medium">
-
-                            {category.name}
-
-                        </p>
-
-                    </button>
-
-                ))}
-
-            </div>
-
-            {error && (
-                <p className="text-red-500 text-sm mt-2">
-
-                    {error}
-
-                </p>
-            )}
+          <p className="mt-2 text-sm font-medium text-slate-600 dark:text-slate-300">
+            No categories available.
+          </p>
 
         </div>
-    );
+      ) : (
+        <div className="mt-3 grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-5">
+
+          {categories.map(category => {
+            const selected =
+              selectedCategory ===
+              category.name;
+
+            return (
+              <button
+                key={category.id}
+                type="button"
+                onClick={() =>
+                  onSelect(category.name)
+                }
+                className={`
+                  rounded-xl
+                  border
+                  px-2
+                  py-3
+                  transition-all
+                  duration-200
+                  ${
+                    selected
+                      ? "border-[#0B6B57] bg-[#0B6B57] text-white shadow-sm"
+                      : "border-slate-200 bg-white hover:border-[#0B6B57] hover:bg-emerald-50 dark:border-slate-700 dark:bg-slate-800"
+                  }
+                `}
+              >
+
+                <div
+                  className={`
+                    mx-auto
+                    flex
+                    h-9
+                    w-9
+                    items-center
+                    justify-center
+                    rounded-lg
+                    text-xl
+                    ${
+                      selected
+                        ? "bg-white/15"
+                        : ""
+                    }
+                  `}
+                  style={
+                    selected
+                      ? undefined
+                      : {
+                          backgroundColor:
+                            category.color ||
+                            "#E5E7EB",
+                        }
+                  }
+                >
+                  {category.icon || "📦"}
+                </div>
+
+                <p
+                  className={`
+                    mt-2
+                    truncate
+                    text-xs
+                    font-semibold
+                    ${
+                      selected
+                        ? "text-white"
+                        : "text-slate-700 dark:text-slate-200"
+                    }
+                  `}
+                  title={category.name}
+                >
+                  {category.name}
+                </p>
+
+              </button>
+            );
+          })}
+
+        </div>
+      )}
+
+      {error && (
+        <p className="mt-2 text-sm text-red-500">
+          {error}
+        </p>
+      )}
+
+    </div>
+  );
 }

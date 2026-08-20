@@ -6,41 +6,28 @@ import {
   FaPiggyBank,
   FaMoneyBillWave,
 } from "react-icons/fa6";
-
 import { useMemo } from "react";
-
 import { useExpenses } from "../../context/ExpenseContext";
 import { useSavings } from "../../context/SavingsContext";
 import { useGoal } from "../../context/GoalContext";
 import { useDashboard } from "../../context/DashboardContext";
-
 import { formatCurrency } from "../../utils/format";
 
 export default function OverviewCards() {
-
   const { summary } = useDashboard();
-
   const { expenses } = useExpenses();
-
   const { totalSavings } = useSavings();
-
   const { totalGoals } = useGoal();
 
   const today = new Date().toISOString().slice(0, 10);
 
-  const todayExpense = useMemo(() => {
-
-    return expenses
-      .filter(
-        (item) =>
-          item.date === today
-      )
-      .reduce(
-        (sum, item) => sum + Number(item.amount),
-        0
-      );
-
-  }, [expenses, today]);
+  const todayExpense = useMemo(
+    () =>
+      expenses
+        .filter((item) => item.date === today)
+        .reduce((sum, item) => sum + Number(item.amount), 0),
+    [expenses, today]
+  );
 
   const cards = [
     {
@@ -48,8 +35,8 @@ export default function OverviewCards() {
       value: todayExpense,
       subtitle: "Today",
       icon: <FaMoneyBillWave />,
-      color: "bg-red-500",
-      bg: "bg-red-50",
+      iconBg: "bg-red-500",
+      lightBg: "bg-red-50 dark:bg-red-950/20",
       currency: true,
     },
     {
@@ -57,8 +44,8 @@ export default function OverviewCards() {
       value: summary?.totalIncome ?? 0,
       subtitle: `${summary?.incomeCount ?? 0} Income Records`,
       icon: <FaArrowTrendUp />,
-      color: "bg-green-500",
-      bg: "bg-green-50",
+      iconBg: "bg-green-500",
+      lightBg: "bg-green-50 dark:bg-green-950/20",
       currency: true,
     },
     {
@@ -66,8 +53,8 @@ export default function OverviewCards() {
       value: summary?.totalExpense ?? 0,
       subtitle: `${summary?.expenseCount ?? 0} Expense Records`,
       icon: <FaArrowTrendDown />,
-      color: "bg-orange-500",
-      bg: "bg-orange-50",
+      iconBg: "bg-orange-500",
+      lightBg: "bg-orange-50 dark:bg-orange-950/20",
       currency: true,
     },
     {
@@ -75,8 +62,8 @@ export default function OverviewCards() {
       value: totalSavings,
       subtitle: "Saved",
       icon: <FaPiggyBank />,
-      color: "bg-purple-500",
-      bg: "bg-purple-50",
+      iconBg: "bg-purple-500",
+      lightBg: "bg-purple-50 dark:bg-purple-950/20",
       currency: true,
     },
     {
@@ -84,8 +71,8 @@ export default function OverviewCards() {
       value: totalGoals,
       subtitle: `${totalGoals} Active Goals`,
       icon: <FaBullseye />,
-      color: "bg-blue-500",
-      bg: "bg-blue-50",
+      iconBg: "bg-blue-500",
+      lightBg: "bg-blue-50 dark:bg-blue-950/20",
       currency: false,
     },
     {
@@ -93,63 +80,40 @@ export default function OverviewCards() {
       value: summary?.currentBalance ?? 0,
       subtitle: "Available",
       icon: <FaWallet />,
-      color: "bg-emerald-500",
-      bg: "bg-emerald-50",
+      iconBg: "bg-emerald-500",
+      lightBg: "bg-emerald-50 dark:bg-emerald-950/20",
       currency: true,
     },
   ];
 
   return (
-
-    <div className="grid xl:grid-cols-3 lg:grid-cols-2 gap-6">
-
+    <div className="grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 xl:grid-cols-3 xl:gap-6">
       {cards.map((card) => (
-
-        <div
+        <article
           key={card.title}
-          className={`${card.bg}
-          rounded-3xl
-          border
-          border-gray-100
-          p-6
-          hover:shadow-xl
-          transition-all`}
+          className={`${card.lightBg} min-w-0 rounded-2xl border border-gray-100 p-4 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg dark:border-slate-700 sm:rounded-3xl sm:p-5 lg:p-6`}
         >
-
-          <div className="flex justify-between">
-
-            <div>
-
-              <p className="text-sm text-gray-500">
+          <div className="flex min-w-0 items-start justify-between gap-3">
+            <div className="min-w-0 flex-1">
+              <p className="text-sm text-gray-500 dark:text-gray-400">
                 {card.title}
               </p>
-
-              <h2 className="text-3xl font-bold mt-3 text-slate-800">
-                {card.currency
-                  ? formatCurrency(card.value)
-                  : card.value}
+              <h2 className="mt-2 break-words text-2xl font-bold leading-tight text-slate-800 dark:text-white sm:mt-3 sm:text-3xl">
+                {card.currency ? formatCurrency(card.value) : card.value}
               </h2>
-
-              <p className="text-sm text-gray-500 mt-3">
+              <p className="mt-2 text-xs text-gray-500 dark:text-gray-400 sm:mt-3 sm:text-sm">
                 {card.subtitle}
               </p>
-
             </div>
 
             <div
-              className={`${card.color} w-14 h-14 rounded-2xl flex justify-center items-center text-white text-xl`}
+              className={`${card.iconBg} flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-lg text-white sm:h-14 sm:w-14 sm:rounded-2xl sm:text-xl`}
             >
               {card.icon}
             </div>
-
           </div>
-
-        </div>
-
+        </article>
       ))}
-
     </div>
-
   );
-
 }

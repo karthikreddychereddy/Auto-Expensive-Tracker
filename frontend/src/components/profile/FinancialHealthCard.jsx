@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+
 import {
   FaHeartPulse,
   FaPiggyBank,
@@ -13,97 +14,188 @@ import { useSavings } from "../../context/SavingsContext";
 import { useGoal } from "../../context/GoalContext";
 
 export default function FinancialHealthCard() {
+  const { totalIncome } =
+    useIncome();
 
-  const { totalIncome } = useIncome();
-  const { expenses } = useExpenses();
-  const { totalSavings } = useSavings();
-  const { overallProgress } = useGoal();
+  const {
+    expenses = [],
+    selectedMonthExpenses,
+  } = useExpenses();
 
-  const totalExpense = expenses.reduce(
-    (sum, item) => sum + Number(item.amount),
-    0
-  );
+  const { totalSavings } =
+    useSavings();
 
-  const savingsRate =
-    totalIncome > 0
-      ? Math.round((totalSavings / totalIncome) * 100)
-      : 0;
+  const { overallProgress } =
+    useGoal();
+
+  const monthlyExpenses =
+    Array.isArray(
+      selectedMonthExpenses
+    )
+      ? selectedMonthExpenses
+      : expenses;
+
+  const totalExpense =
+    monthlyExpenses.reduce(
+      (sum, item) =>
+        sum +
+        Number(item.amount || 0),
+      0
+    );
+
+  const income =
+    Number(totalIncome || 0);
+
+  const savings =
+    Number(totalSavings || 0);
+
+  const goalProgress =
+    Math.min(
+      100,
+      Math.max(
+        0,
+        Number(
+          overallProgress || 0
+        )
+      )
+    );
 
   const expenseRatio =
-    totalIncome > 0
-      ? Math.round((totalExpense / totalIncome) * 100)
+    income > 0
+      ? Math.min(
+          100,
+          Math.round(
+            (totalExpense /
+              income) *
+              100
+          )
+        )
       : 0;
 
-  const budgetUsage = Math.min(expenseRatio, 100);
+  const savingsIndicator =
+    income > 0
+      ? Math.min(
+          100,
+          Math.round(
+            (savings / income) *
+              100
+          )
+        )
+      : savings > 0
+        ? 100
+        : 0;
 
-  const healthScore = Math.min(
-    100,
-    Math.round(
-      savingsRate * 0.4 +
-        (100 - expenseRatio) * 0.4 +
-        overallProgress * 0.2
-    )
-  );
+  const spendingScore =
+    Math.max(
+      0,
+      100 - expenseRatio
+    );
+
+  const healthScore =
+    income <= 0 &&
+    totalExpense <= 0 &&
+    savings <= 0
+      ? 0
+      : Math.round(
+          spendingScore * 0.45 +
+            savingsIndicator *
+              0.3 +
+            goalProgress * 0.25
+        );
+
+  const healthStatus =
+    healthScore >= 80
+      ? "Excellent"
+      : healthScore >= 60
+        ? "Good"
+        : healthScore >= 40
+          ? "Fair"
+          : "Needs Attention";
+
+  const recommendation =
+    income <= 0
+      ? "Add your income details to get a more accurate financial health score."
+      : expenseRatio > 70
+        ? "Your monthly expense ratio is high. Review non-essential spending and strengthen your monthly savings."
+        : savingsIndicator < 20
+          ? "Your spending is under control. Try directing more of your available balance toward savings and goals."
+          : "Your finances are progressing well. Continue maintaining controlled spending and consistent saving habits.";
 
   const stats = [
     {
-      title: "Savings Rate",
-      value: savingsRate,
+      title:
+        "Savings Indicator",
+      value: savingsIndicator,
       color: "bg-green-500",
       icon: <FaPiggyBank />,
     },
     {
-      title: "Expense Ratio",
+      title:
+        "Expense Ratio",
       value: expenseRatio,
       color: "bg-red-500",
-      icon: <FaArrowTrendDown />,
+      icon:
+        <FaArrowTrendDown />,
     },
     {
-      title: "Goal Progress",
-      value: Math.round(overallProgress),
+      title:
+        "Goal Progress",
+      value: Math.round(
+        goalProgress
+      ),
       color: "bg-blue-500",
       icon: <FaBullseye />,
     },
     {
-      title: "Budget Usage",
-      value: budgetUsage,
+      title:
+        "Spending Control",
+      value: spendingScore,
       color: "bg-orange-500",
       icon: <FaHeartPulse />,
     },
   ];
 
   return (
-    <motion.div
-      initial={{ opacity: 0, x: 25 }}
-      animate={{ opacity: 1, x: 0 }}
-      className="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden"
+    <motion.section
+      initial={{
+        opacity: 0,
+        x: -20,
+      }}
+      animate={{
+        opacity: 1,
+        x: 0,
+      }}
+      className="h-full overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-lg dark:border-slate-700 dark:bg-slate-900"
     >
+
       <div className="bg-gradient-to-r from-[#0B6B57] to-[#12A67D] p-6 text-white">
+
         <h2 className="text-2xl font-bold">
           Financial Health
         </h2>
 
-        <p className="opacity-90 mt-2">
-          AI powered financial wellness analysis
+        <p className="mt-2 text-sm text-white/80">
+          Financial wellness based on your current activity.
         </p>
+
       </div>
 
-      <div className="p-8">
+      <div className="p-5 sm:p-7">
 
-        <div className="flex justify-center mb-8">
+        <div className="mb-8 flex justify-center">
 
-          <div className="relative w-52 h-52">
+          <div className="relative h-44 w-44 sm:h-48 sm:w-48">
 
             <svg
-              className="w-full h-full -rotate-90"
+              className="h-full w-full -rotate-90"
               viewBox="0 0 200 200"
             >
-
               <circle
                 cx="100"
                 cy="100"
                 r="85"
-                stroke="#E5E7EB"
+                stroke="currentColor"
+                className="text-slate-200 dark:text-slate-700"
                 strokeWidth="12"
                 fill="none"
               />
@@ -118,38 +210,34 @@ export default function FinancialHealthCard() {
                 strokeLinecap="round"
                 strokeDasharray="534"
                 initial={{
-                  strokeDashoffset: 534,
+                  strokeDashoffset:
+                    534,
                 }}
                 animate={{
                   strokeDashoffset:
                     534 -
-                    (534 * healthScore) / 100,
+                    (534 *
+                      healthScore) /
+                      100,
                 }}
                 transition={{
-                  duration: 1.8,
+                  duration: 1.2,
                 }}
               />
-
             </svg>
 
-            <div className="absolute inset-0 flex flex-col justify-center items-center">
+            <div className="absolute inset-0 flex flex-col items-center justify-center">
 
-              <h1 className="text-5xl font-bold text-[#0B6B57]">
-
+              <h3 className="text-4xl font-bold text-[#0B6B57]">
                 {healthScore}
+              </h3>
 
-              </h1>
-
-              <p className="text-gray-500">
-
+              <span className="text-sm text-slate-500 dark:text-slate-400">
                 /100
+              </span>
 
-              </p>
-
-              <span className="mt-2 px-4 py-1 rounded-full bg-green-100 text-green-700 text-sm font-semibold">
-
-                Excellent
-
+              <span className="mt-2 rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300">
+                {healthStatus}
               </span>
 
             </div>
@@ -158,43 +246,37 @@ export default function FinancialHealthCard() {
 
         </div>
 
-        <div className="space-y-6">
+        <div className="space-y-5">
 
-          {stats.map((item) => (
-
+          {stats.map(item => (
             <div key={item.title}>
 
-              <div className="flex justify-between items-center mb-2">
+              <div className="mb-2 flex items-center justify-between gap-4">
 
-                <div className="flex items-center gap-2">
-
+                <div className="flex items-center gap-2 text-sm font-medium text-slate-700 dark:text-slate-200">
                   {item.icon}
 
-                  <span className="font-medium">
-
-                    {item.title}
-
-                  </span>
-
+                  {item.title}
                 </div>
 
-                <span className="font-bold">
-
+                <span className="text-sm font-bold text-slate-800 dark:text-white">
                   {item.value}%
-
                 </span>
 
               </div>
 
-              <div className="h-3 rounded-full bg-gray-200 overflow-hidden">
+              <div className="h-2.5 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700">
 
                 <motion.div
-                  initial={{ width: 0 }}
+                  initial={{
+                    width: 0,
+                  }}
                   animate={{
-                    width: `${item.value}%`,
+                    width:
+                      `${item.value}%`,
                   }}
                   transition={{
-                    duration: 1.4,
+                    duration: 1,
                   }}
                   className={`h-full ${item.color}`}
                 />
@@ -202,58 +284,34 @@ export default function FinancialHealthCard() {
               </div>
 
             </div>
-
           ))}
 
         </div>
 
-        <motion.div
-          initial={{
-            opacity: 0,
-            y: 20,
-          }}
-          animate={{
-            opacity: 1,
-            y: 0,
-          }}
-          transition={{
-            delay: 1,
-          }}
-          className="mt-8 rounded-2xl bg-gradient-to-r from-emerald-50 to-green-50 border border-emerald-200 p-5"
-        >
+        <div className="mt-8 rounded-2xl border border-emerald-200 bg-emerald-50 p-5 dark:border-emerald-900 dark:bg-emerald-950/20">
 
-          <div className="flex gap-4">
+          <div className="flex items-start gap-4">
 
-            <div className="w-12 h-12 rounded-xl bg-[#0B6B57] text-white flex items-center justify-center text-xl">
-
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#0B6B57] text-white">
               <FaRobot />
-
             </div>
 
             <div>
-
-              <h3 className="font-bold text-lg">
-
-                AI Recommendation
-
+              <h3 className="font-bold text-slate-800 dark:text-white">
+                Financial Recommendation
               </h3>
 
-              <p className="text-gray-600 mt-2 leading-7">
-
-                Great financial discipline. Keep your expense ratio below
-                <strong> 35%</strong> and increase monthly savings by
-                <strong> ₹3,000</strong> to reach your savings goal much earlier.
-
+              <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">
+                {recommendation}
               </p>
-
             </div>
 
           </div>
 
-        </motion.div>
+        </div>
 
       </div>
 
-    </motion.div>
+    </motion.section>
   );
 }

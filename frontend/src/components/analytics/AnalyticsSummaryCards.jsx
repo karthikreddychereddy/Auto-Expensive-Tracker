@@ -9,96 +9,47 @@ import { useInsights } from "../../context/InsightContext";
 import { formatCurrency } from "../../utils/format";
 
 export default function AnalyticsSummaryCards() {
-
   const { insight } = useInsights();
-
   const [activeCard, setActiveCard] = useState("");
 
   const cards = [
-
-    {
-      title: "Income",
-      value: Number(insight?.totalIncome ?? 0),
-      icon: FaArrowCircleDown,
-      color: "from-green-500 to-green-700",
-    },
-
-    {
-      title: "Expense",
-      value: Number(insight?.totalExpense ?? 0),
-      icon: FaArrowCircleUp,
-      color: "from-red-500 to-red-700",
-    },
-
-    {
-      title: "Balance",
-      value: Number(insight?.balance ?? 0),
-      icon: FaWallet,
-      color: "from-blue-500 to-blue-700",
-    },
-
-    {
-      title: "Savings",
-      value: Number(insight?.totalSavings ?? 0),
-      icon: FaExchangeAlt,
-      color: "from-purple-500 to-purple-700",
-    },
-
+    { title: "Income", value: Number(insight?.totalIncome ?? 0), icon: FaArrowCircleDown, color: "from-green-500 to-green-700" },
+    { title: "Expense", value: Number(insight?.totalExpense ?? 0), icon: FaArrowCircleUp, color: "from-red-500 to-red-700" },
+    { title: "Balance", value: Number(insight?.balance ?? 0), icon: FaWallet, color: "from-blue-500 to-blue-700" },
+    { title: "Savings", value: Number(insight?.totalSavings ?? 0), icon: FaExchangeAlt, color: "from-purple-500 to-purple-700" },
   ];
 
   return (
-
-    <div className="grid md:grid-cols-2 xl:grid-cols-4 gap-6">
-
+    <div className="grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 xl:grid-cols-4 xl:gap-6">
       {cards.map((card) => {
-
         const Icon = card.icon;
 
         return (
-
-          <div
+          <button
+            type="button"
             key={card.title}
             onClick={() => setActiveCard(card.title)}
-            className={`rounded-3xl shadow border overflow-hidden cursor-pointer transition ${
+            className={`min-w-0 overflow-hidden rounded-2xl border border-slate-200 text-left shadow-sm transition dark:border-slate-700 sm:rounded-3xl ${
               activeCard === card.title
-                ? "ring-4 ring-[#0B6B57] scale-105"
-                : "hover:shadow-xl hover:scale-105"
+                ? "ring-2 ring-[#0B6B57]"
+                : "hover:-translate-y-0.5 hover:shadow-lg"
             }`}
           >
-
-            <div className={`bg-gradient-to-r ${card.color} p-5 flex justify-between`}>
-
-              <div>
-
-                <p className="text-white/80 text-sm">
-                  {card.title}
-                </p>
-
-                <h2 className="text-3xl font-bold text-white mt-2">
+            <div className={`flex min-w-0 items-start justify-between gap-3 bg-gradient-to-r ${card.color} p-4 sm:p-5`}>
+              <div className="min-w-0 flex-1">
+                <p className="text-sm text-white/80">{card.title}</p>
+                <h2 className="mt-2 break-words text-2xl font-bold leading-tight text-white sm:text-3xl">
                   {formatCurrency(card.value)}
                 </h2>
-
               </div>
 
-              <div className="w-16 h-16 rounded-full bg-white/20 flex items-center justify-center">
-
-                <Icon
-                  className="text-white"
-                  size={28}
-                />
-
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-white/20 sm:h-14 sm:w-14">
+                <Icon className="text-white" size={24} />
               </div>
-
             </div>
-
-          </div>
-
+          </button>
         );
-
       })}
-
     </div>
-
   );
-
 }

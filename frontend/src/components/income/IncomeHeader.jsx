@@ -8,7 +8,7 @@ export default function IncomeHeader() {
 
   return (
 
-    <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-8">
+    <div className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-800 sm:rounded-3xl sm:p-6 lg:p-8">
 
       <div className="flex flex-col lg:flex-row justify-between lg:items-center gap-8">
 
@@ -16,13 +16,13 @@ export default function IncomeHeader() {
 
         <div>
 
-          <h1 className="text-4xl font-bold text-slate-800">
+          <h1 className="text-3xl font-bold text-slate-800 dark:text-white sm:text-4xl">
 
             Income
 
           </h1>
 
-          <p className="text-gray-500 mt-2 text-lg">
+          <p className="mt-2 text-sm text-gray-500 dark:text-gray-400 sm:text-base lg:text-lg">
 
             Track your earnings and monitor your income growth.
 

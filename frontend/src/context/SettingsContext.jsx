@@ -1,13 +1,20 @@
 import {
   createContext,
+  useCallback,
   useContext,
   useEffect,
+  useRef,
   useState,
 } from "react";
 
 import settingsService from "../services/settingsService";
 
-const SettingsContext = createContext(null);
+import {
+  useAuth,
+} from "./AuthContext";
+
+const SettingsContext =
+  createContext(null);
 
 const defaultSettings = {
   theme: "light",
@@ -57,412 +64,1103 @@ const defaultSettings = {
   },
 };
 
-export function SettingsProvider({ children }) {
+function mapBackendSettings(
+  data,
+  previousTheme = "light"
+) {
+  return {
+    ...defaultSettings,
 
-  const [settings, setSettings] =
-    useState(defaultSettings);
+    theme:
+      previousTheme ||
+      defaultSettings.theme,
 
-  const [loading, setLoading] =
-    useState(true);
+    currency:
+      data?.currency ??
+      defaultSettings.currency,
+
+    language:
+      data?.language ??
+      defaultSettings.language,
+
+    budget: {
+      warning:
+        data?.budgetWarning ??
+        defaultSettings.budget.warning,
+
+      critical:
+        data?.budgetCritical ??
+        defaultSettings.budget.critical,
+    },
+
+    notifications: {
+      budgetAlerts:
+        data?.budgetAlerts ??
+        defaultSettings.notifications.budgetAlerts,
+
+      dailyReminder:
+        data?.dailyReminder ??
+        defaultSettings.notifications.dailyReminder,
+
+      monthlyReport:
+        data?.monthlyReport ??
+        defaultSettings.notifications.monthlyReport,
+
+      goalReminder:
+        data?.goalReminder ??
+        defaultSettings.notifications.goalReminder,
+
+      aiSuggestions:
+        data?.aiSuggestions ??
+        defaultSettings.notifications.aiSuggestions,
+    },
+
+    ai: {
+      smartSuggestions:
+        data?.smartSuggestions ??
+        defaultSettings.ai.smartSuggestions,
+
+      weeklySummary:
+        data?.weeklySummary ??
+        defaultSettings.ai.weeklySummary,
+
+      aiInsights:
+        data?.aiInsights ??
+        defaultSettings.ai.aiInsights,
+    },
+
+    receipt: {
+      enabled:
+        data?.receiptEnabled ??
+        defaultSettings.receipt.enabled,
+
+      autoCrop:
+        data?.autoCrop ??
+        defaultSettings.receipt.autoCrop,
+
+      autoCategorize:
+        data?.autoCategorize ??
+        defaultSettings.receipt.autoCategorize,
+
+      highQuality:
+        data?.highQuality ??
+        defaultSettings.receipt.highQuality,
+
+      saveImages:
+        data?.saveImages ??
+        defaultSettings.receipt.saveImages,
+    },
+
+    sms: {
+      smsTracking:
+        data?.smsTracking ??
+        defaultSettings.sms.smsTracking,
+
+      autoExpense:
+        data?.autoExpense ??
+        defaultSettings.sms.autoExpense,
+
+      instantNotification:
+        data?.instantNotification ??
+        defaultSettings.sms.instantNotification,
+
+      syncHistory:
+        data?.syncHistory ??
+        defaultSettings.sms.syncHistory,
+
+      bankMessagesOnly:
+        data?.bankMessagesOnly ??
+        defaultSettings.sms.bankMessagesOnly,
+    },
+
+    backup: {
+      autoBackup:
+        data?.autoBackup ??
+        defaultSettings.backup.autoBackup,
+
+      frequency:
+        data?.backupFrequency ??
+        defaultSettings.backup.frequency,
+    },
+  };
+}
+
+export function SettingsProvider({
+  children,
+}) {
+  const {
+    user,
+  } = useAuth();
+
+  const [
+    settings,
+    setSettings,
+  ] = useState(() => ({
+    ...defaultSettings,
+    theme:
+      localStorage.getItem("pt_theme") ||
+      defaultSettings.theme,
+  }));
+
+  const [
+    loading,
+    setLoading,
+  ] = useState(false);
+
+  const [
+    saving,
+    setSaving,
+  ] = useState(false);
+
+  const budgetTimerRef =
+    useRef(null);
+
+  // ==========================================
+  // LOAD SETTINGS
+  // ==========================================
+
+  const loadSettings =
+    useCallback(async () => {
+      if (!user) {
+        setSettings(
+          previous => ({
+            ...defaultSettings,
+
+            theme:
+              previous.theme ||
+              defaultSettings.theme,
+          })
+        );
+
+        setLoading(false);
+
+        return;
+      }
+
+      try {
+        setLoading(true);
+
+        const data =
+          await settingsService
+            .getSettings();
+
+        setSettings(
+          previous =>
+            mapBackendSettings(
+              data,
+              previous.theme
+            )
+        );
+
+      } catch (error) {
+        console.error(
+          "Failed to load settings:",
+          error
+        );
+
+      } finally {
+        setLoading(false);
+      }
+    }, [
+      user,
+    ]);
 
   useEffect(() => {
-
     loadSettings();
+  }, [
+    loadSettings,
+  ]);
 
-  }, []);
+  // ==========================================
+  // THEME
+  // ==========================================
 
   useEffect(() => {
-
     const root =
       document.documentElement;
 
-    root.classList.remove(
-      "light",
-      "dark"
+    const mediaQuery =
+      window.matchMedia(
+        "(prefers-color-scheme: dark)"
+      );
+
+    const applyTheme = () => {
+      const shouldUseDark =
+        settings.theme === "dark" ||
+        (
+          settings.theme === "system" &&
+          mediaQuery.matches
+        );
+
+      root.classList.toggle(
+        "dark",
+        shouldUseDark
+      );
+
+      root.classList.toggle(
+        "light",
+        !shouldUseDark
+      );
+
+      root.style.colorScheme =
+        shouldUseDark
+          ? "dark"
+          : "light";
+    };
+
+    localStorage.setItem(
+      "pt_theme",
+      settings.theme
     );
 
-    if (settings.theme === "dark") {
+    applyTheme();
 
-      root.classList.add("dark");
-
-    }
-    else {
-
-      root.classList.add("light");
-
+    if (
+      settings.theme !== "system"
+    ) {
+      return undefined;
     }
 
-  }, [settings.theme]);
+    const handleSystemThemeChange =
+      () => applyTheme();
 
-  const loadSettings = async () => {
+    mediaQuery.addEventListener(
+      "change",
+      handleSystemThemeChange
+    );
 
-    try {
+    return () => {
+      mediaQuery.removeEventListener(
+        "change",
+        handleSystemThemeChange
+      );
+    };
+  }, [
+    settings.theme,
+  ]);
 
-      const data =
-        await settingsService.getSettings();
+  // ==========================================
+  // REMINDER SYNCHRONIZATION
+  // ==========================================
 
-      setSettings({
+  useEffect(() => {
+    const handleReminderSettingsUpdated =
+      event => {
+        const enabled =
+          event?.detail?.enabled;
 
+        if (
+          typeof enabled !==
+          "boolean"
+        ) {
+          return;
+        }
+
+        setSettings(
+          previous => ({
+            ...previous,
+
+            notifications: {
+              ...previous.notifications,
+
+              dailyReminder:
+                enabled,
+            },
+          })
+        );
+      };
+
+    window.addEventListener(
+      "notification-reminder-settings-updated",
+      handleReminderSettingsUpdated
+    );
+
+    return () => {
+      window.removeEventListener(
+        "notification-reminder-settings-updated",
+        handleReminderSettingsUpdated
+      );
+    };
+  }, []);
+
+  // ==========================================
+  // PARTIAL BACKEND UPDATE
+  // ==========================================
+
+  const persistPatch =
+    useCallback(
+      async payload => {
+        if (!user) {
+          return null;
+        }
+
+        try {
+          setSaving(true);
+
+          return await settingsService
+            .updateSettings(
+              payload
+            );
+
+        } catch (error) {
+          console.error(
+            "Failed to persist settings:",
+            error
+          );
+
+          throw error;
+
+        } finally {
+          setSaving(false);
+        }
+      },
+      [
+        user,
+      ]
+    );
+
+  // ==========================================
+  // THEME
+  // ==========================================
+
+  const updateTheme =
+    theme => {
+      setSettings(
+        previous => ({
+          ...previous,
+          theme,
+        })
+      );
+    };
+
+  // ==========================================
+  // CURRENCY
+  // ==========================================
+
+  const updateCurrency =
+    async currency => {
+      const previous =
+        settings.currency;
+
+      setSettings(
+        current => ({
+          ...current,
+          currency,
+        })
+      );
+
+      try {
+        await persistPatch({
+          currency,
+        });
+
+      } catch {
+        setSettings(
+          current => ({
+            ...current,
+            currency:
+              previous,
+          })
+        );
+      }
+    };
+
+  // ==========================================
+  // LANGUAGE
+  // ==========================================
+
+  const updateLanguage =
+    async language => {
+      const previous =
+        settings.language;
+
+      setSettings(
+        current => ({
+          ...current,
+          language,
+        })
+      );
+
+      try {
+        await persistPatch({
+          language,
+        });
+
+      } catch {
+        setSettings(
+          current => ({
+            ...current,
+            language:
+              previous,
+          })
+        );
+      }
+    };
+
+  // ==========================================
+  // AI
+  // ==========================================
+
+  const updateAI =
+    async (
+      key,
+      value
+    ) => {
+      const previous =
+        settings.ai?.[key];
+
+      setSettings(
+        current => ({
+          ...current,
+
+          ai: {
+            ...current.ai,
+            [key]: value,
+          },
+        })
+      );
+
+      const fieldMap = {
+        smartSuggestions:
+          "smartSuggestions",
+
+        weeklySummary:
+          "weeklySummary",
+
+        aiInsights:
+          "aiInsights",
+      };
+
+      const backendField =
+        fieldMap[key];
+
+      if (!backendField) {
+        return;
+      }
+
+      try {
+        await persistPatch({
+          [backendField]:
+            value,
+        });
+
+      } catch {
+        setSettings(
+          current => ({
+            ...current,
+
+            ai: {
+              ...current.ai,
+              [key]:
+                previous,
+            },
+          })
+        );
+      }
+    };
+
+  // ==========================================
+  // RECEIPT
+  // ==========================================
+
+  const updateReceipt =
+    async (
+      key,
+      value
+    ) => {
+      const previous =
+        settings.receipt?.[key];
+
+      setSettings(
+        current => ({
+          ...current,
+
+          receipt: {
+            ...current.receipt,
+            [key]: value,
+          },
+        })
+      );
+
+      const fieldMap = {
+        enabled:
+          "receiptEnabled",
+
+        autoCrop:
+          "autoCrop",
+
+        autoCategorize:
+          "autoCategorize",
+
+        highQuality:
+          "highQuality",
+
+        saveImages:
+          "saveImages",
+      };
+
+      const backendField =
+        fieldMap[key];
+
+      if (!backendField) {
+        return;
+      }
+
+      try {
+        await persistPatch({
+          [backendField]:
+            value,
+        });
+
+      } catch {
+        setSettings(
+          current => ({
+            ...current,
+
+            receipt: {
+              ...current.receipt,
+
+              [key]:
+                previous,
+            },
+          })
+        );
+      }
+    };
+
+  // ==========================================
+  // BUDGET
+  // ==========================================
+
+  const updateBudget =
+    (
+      key,
+      value
+    ) => {
+      const numberValue =
+        Number(value);
+
+      setSettings(
+        previous => ({
+          ...previous,
+
+          budget: {
+            ...previous.budget,
+
+            [key]:
+              numberValue,
+          },
+        })
+      );
+
+      if (
+        budgetTimerRef.current
+      ) {
+        clearTimeout(
+          budgetTimerRef.current
+        );
+      }
+
+      budgetTimerRef.current =
+        setTimeout(
+          async () => {
+            try {
+              if (
+                key ===
+                "warning"
+              ) {
+                await persistPatch({
+                  budgetWarning:
+                    numberValue,
+                });
+              }
+
+              if (
+                key ===
+                "critical"
+              ) {
+                await persistPatch({
+                  budgetCritical:
+                    numberValue,
+                });
+              }
+
+            } catch (error) {
+              console.error(
+                "Failed to save budget preference:",
+                error
+              );
+
+              await loadSettings();
+            }
+          },
+          500
+        );
+    };
+
+  useEffect(() => {
+    return () => {
+      if (
+        budgetTimerRef.current
+      ) {
+        clearTimeout(
+          budgetTimerRef.current
+        );
+      }
+    };
+  }, []);
+
+  // ==========================================
+  // NOTIFICATIONS
+  //
+  // Kept local until Save Changes is pressed.
+  // ==========================================
+
+  const updateNotifications =
+    (
+      key,
+      value
+    ) => {
+      setSettings(
+        previous => ({
+          ...previous,
+
+          notifications: {
+            ...previous.notifications,
+            [key]: value,
+          },
+        })
+      );
+    };
+
+  // ==========================================
+  // SMS
+  // ==========================================
+
+  const updateSMS =
+    (
+      key,
+      value
+    ) => {
+      setSettings(
+        previous => ({
+          ...previous,
+
+          sms: {
+            ...previous.sms,
+            [key]: value,
+          },
+        })
+      );
+    };
+
+  // ==========================================
+  // BACKUP
+  // ==========================================
+
+  const updateBackup =
+    (
+      key,
+      value
+    ) => {
+      setSettings(
+        previous => ({
+          ...previous,
+
+          backup: {
+            ...previous.backup,
+            [key]: value,
+          },
+        })
+      );
+    };
+
+  // ==========================================
+  // BUILD COMPLETE PAYLOAD
+  // ==========================================
+
+  const buildSettingsPayload =
+    currentSettings => ({
+      currency:
+        currentSettings.currency,
+
+      language:
+        currentSettings.language,
+
+      budgetWarning:
+        currentSettings.budget
+          .warning,
+
+      budgetCritical:
+        currentSettings.budget
+          .critical,
+
+      budgetAlerts:
+        currentSettings.notifications
+          .budgetAlerts,
+
+      dailyReminder:
+        currentSettings.notifications
+          .dailyReminder,
+
+      monthlyReport:
+        currentSettings.notifications
+          .monthlyReport,
+
+      goalReminder:
+        currentSettings.notifications
+          .goalReminder,
+
+      aiSuggestions:
+        currentSettings.notifications
+          .aiSuggestions,
+
+      smartSuggestions:
+        currentSettings.ai
+          .smartSuggestions,
+
+      weeklySummary:
+        currentSettings.ai
+          .weeklySummary,
+
+      aiInsights:
+        currentSettings.ai
+          .aiInsights,
+
+      receiptEnabled:
+        currentSettings.receipt
+          .enabled,
+
+      autoCrop:
+        currentSettings.receipt
+          .autoCrop,
+
+      autoCategorize:
+        currentSettings.receipt
+          .autoCategorize,
+
+      highQuality:
+        currentSettings.receipt
+          .highQuality,
+
+      saveImages:
+        currentSettings.receipt
+          .saveImages,
+
+      smsTracking:
+        currentSettings.sms
+          .smsTracking,
+
+      autoExpense:
+        currentSettings.sms
+          .autoExpense,
+
+      instantNotification:
+        currentSettings.sms
+          .instantNotification,
+
+      syncHistory:
+        currentSettings.sms
+          .syncHistory,
+
+      bankMessagesOnly:
+        currentSettings.sms
+          .bankMessagesOnly,
+
+      autoBackup:
+        currentSettings.backup
+          .autoBackup,
+
+      backupFrequency:
+        currentSettings.backup
+          .frequency,
+    });
+
+  // ==========================================
+  // SAVE COMPLETE SETTINGS
+  // ==========================================
+
+  const saveSettings =
+    async () => {
+      if (
+        settings.budget.warning <
+          1 ||
+        settings.budget.warning >
+          100
+      ) {
+        throw new Error(
+          "Budget warning must be between 1 and 100."
+        );
+      }
+
+      if (
+        settings.budget.critical <
+          1 ||
+        settings.budget.critical >
+          100
+      ) {
+        throw new Error(
+          "Budget critical threshold must be between 1 and 100."
+        );
+      }
+
+      if (
+        settings.budget.critical <
+        settings.budget.warning
+      ) {
+        throw new Error(
+          "Critical threshold cannot be lower than warning threshold."
+        );
+      }
+
+      try {
+        const payload =
+          buildSettingsPayload(
+            settings
+          );
+
+        const data =
+          await settingsService
+            .updateSettings(
+              payload
+            );
+
+        window.dispatchEvent(
+          new CustomEvent(
+            "settings-daily-reminder-updated",
+            {
+              detail: {
+                enabled:
+                  Boolean(
+                    data?.dailyReminder
+                  ),
+              },
+            }
+          )
+        );
+
+        return true;
+
+      } catch (error) {
+        console.error(
+          "Failed to save settings:",
+          error
+        );
+
+        throw error;
+      }
+    };
+
+  // ==========================================
+  // RESET NOTIFICATIONS
+  // ==========================================
+
+  const resetNotificationSettings =
+    async () => {
+      const previousNotifications =
+        settings.notifications;
+
+      const resetNotifications = {
+        ...defaultSettings.notifications,
+      };
+
+      const updatedSettings = {
+        ...settings,
+
+        notifications:
+          resetNotifications,
+      };
+
+      try {
+        setSettings(
+          updatedSettings
+        );
+
+        await settingsService
+          .updateSettings(
+            buildSettingsPayload(
+              updatedSettings
+            )
+          );
+
+        window.dispatchEvent(
+          new CustomEvent(
+            "settings-daily-reminder-updated",
+            {
+              detail: {
+                enabled:
+                  resetNotifications
+                    .dailyReminder,
+              },
+            }
+          )
+        );
+
+        return true;
+
+      } catch (error) {
+        console.error(
+          "Failed to reset notification settings:",
+          error
+        );
+
+        setSettings(
+          previous => ({
+            ...previous,
+
+            notifications:
+              previousNotifications,
+          })
+        );
+
+        return false;
+      }
+    };
+
+  // ==========================================
+  // RESET EVERYTHING
+  // ==========================================
+
+  const resetSettings =
+    async () => {
+      const previousSettings =
+        settings;
+
+      const resetValue = {
         ...defaultSettings,
 
-        currency:
-          data.currency,
-
-        language:
-          data.language,
-
-        budget: {
-
-          warning:
-            data.budgetWarning,
-
-          critical:
-            data.budgetCritical,
-
-        },
+        theme:
+          settings.theme,
 
         notifications: {
-
-          budgetAlerts:
-            data.budgetAlerts,
-
-          dailyReminder:
-            data.dailyReminder,
-
-          monthlyReport:
-            data.monthlyReport,
-
-          goalReminder:
-            data.goalReminder,
-
-          aiSuggestions:
-            data.aiSuggestions,
-
+          ...defaultSettings.notifications,
         },
 
         ai: {
+          ...defaultSettings.ai,
+        },
 
-          smartSuggestions:
-            data.smartSuggestions,
-
-          weeklySummary:
-            data.weeklySummary,
-
-          aiInsights:
-            data.aiInsights,
-
+        budget: {
+          ...defaultSettings.budget,
         },
 
         receipt: {
-
-          enabled:
-            data.receiptEnabled,
-
-          autoCrop:
-            data.autoCrop,
-
-          autoCategorize:
-            data.autoCategorize,
-
-          highQuality:
-            data.highQuality,
-
-          saveImages:
-            data.saveImages,
-
+          ...defaultSettings.receipt,
         },
 
         sms: {
-
-          smsTracking:
-            data.smsTracking,
-
-          autoExpense:
-            data.autoExpense,
-
-          instantNotification:
-            data.instantNotification,
-
-          syncHistory:
-            data.syncHistory,
-
-          bankMessagesOnly:
-            data.bankMessagesOnly,
-
+          ...defaultSettings.sms,
         },
 
         backup: {
-
-          autoBackup:
-            data.autoBackup,
-
-          frequency:
-            data.backupFrequency,
-
+          ...defaultSettings.backup,
         },
-
-      });
-
-    }
-    catch (error) {
-
-      console.error(
-        "Failed to load settings",
-        error
-      );
-
-    }
-    finally {
-
-      setLoading(false);
-
-    }
-
-  };
-    const updateTheme = (theme) => {
-    setSettings((prev) => ({
-      ...prev,
-      theme,
-    }));
-  };
-
-  const updateNotifications = (key, value) => {
-    setSettings((prev) => ({
-      ...prev,
-      notifications: {
-        ...prev.notifications,
-        [key]: value,
-      },
-    }));
-  };
-
-  const updateAI = (key, value) => {
-    setSettings((prev) => ({
-      ...prev,
-      ai: {
-        ...prev.ai,
-        [key]: value,
-      },
-    }));
-  };
-
-  const updateBudget = (key, value) => {
-    setSettings((prev) => ({
-      ...prev,
-      budget: {
-        ...prev.budget,
-        [key]: Number(value),
-      },
-    }));
-  };
-
-  const updateCurrency = (currency) => {
-    setSettings((prev) => ({
-      ...prev,
-      currency,
-    }));
-  };
-
-  const updateLanguage = (language) => {
-    setSettings((prev) => ({
-      ...prev,
-      language,
-    }));
-  };
-
-  const updateReceipt = (key, value) => {
-    setSettings((prev) => ({
-      ...prev,
-      receipt: {
-        ...prev.receipt,
-        [key]: value,
-      },
-    }));
-  };
-
-  const updateSMS = (key, value) => {
-    setSettings((prev) => ({
-      ...prev,
-      sms: {
-        ...prev.sms,
-        [key]: value,
-      },
-    }));
-  };
-
-  const updateBackup = (key, value) => {
-    setSettings((prev) => ({
-      ...prev,
-      backup: {
-        ...prev.backup,
-        [key]: value,
-      },
-    }));
-  };
-
-  const saveSettings = async () => {
-
-    try {
-
-      const payload = {
-
-        currency: settings.currency,
-        language: settings.language,
-
-        budgetWarning: settings.budget.warning,
-        budgetCritical: settings.budget.critical,
-
-        budgetAlerts: settings.notifications.budgetAlerts,
-        dailyReminder: settings.notifications.dailyReminder,
-        monthlyReport: settings.notifications.monthlyReport,
-        goalReminder: settings.notifications.goalReminder,
-        aiSuggestions: settings.notifications.aiSuggestions,
-
-        smartSuggestions: settings.ai.smartSuggestions,
-        weeklySummary: settings.ai.weeklySummary,
-        aiInsights: settings.ai.aiInsights,
-
-        receiptEnabled: settings.receipt.enabled,
-        autoCrop: settings.receipt.autoCrop,
-        autoCategorize: settings.receipt.autoCategorize,
-        highQuality: settings.receipt.highQuality,
-        saveImages: settings.receipt.saveImages,
-
-        smsTracking: settings.sms.smsTracking,
-        autoExpense: settings.sms.autoExpense,
-        instantNotification: settings.sms.instantNotification,
-        syncHistory: settings.sms.syncHistory,
-        bankMessagesOnly: settings.sms.bankMessagesOnly,
-
-        autoBackup: settings.backup.autoBackup,
-        backupFrequency: settings.backup.frequency,
-
       };
 
-      const data =
-        await settingsService.updateSettings(payload);
+      try {
+        setSettings(
+          resetValue
+        );
 
-      console.log(
-        "Settings Saved",
-        data
-      );
+        await settingsService
+          .updateSettings(
+            buildSettingsPayload(
+              resetValue
+            )
+          );
 
-      return true;
+        return true;
 
-    }
-    catch (error) {
+      } catch (error) {
+        console.error(
+          "Failed to reset settings:",
+          error
+        );
 
-      console.error(
-        "Failed to save settings",
-        error
-      );
+        setSettings(
+          previousSettings
+        );
 
-      return false;
+        return false;
+      }
+    };
 
-    }
+  // ==========================================
+  // CHANGE PASSWORD
+  // ==========================================
 
-  };
+  const changePassword =
+    async payload => {
+      try {
+        return await settingsService
+          .changePassword(
+            payload
+          );
 
-  const changePassword = async (payload) => {
+      } catch (error) {
+        console.error(
+          "Failed to change password:",
+          error
+        );
 
-    try {
-
-      return await settingsService.changePassword(
-        payload
-      );
-
-    }
-    catch (error) {
-
-      console.error(error);
-
-      throw error;
-
-    }
-
-  };
-
-  const resetSettings = async () => {
-
-    try {
-
-      setSettings(defaultSettings);
-
-      await settingsService.updateSettings({
-
-        currency: "INR",
-        language: "English",
-
-        budgetWarning: 70,
-        budgetCritical: 90,
-
-        budgetAlerts: true,
-        dailyReminder: true,
-        monthlyReport: true,
-        goalReminder: true,
-        aiSuggestions: true,
-
-        smartSuggestions: true,
-        weeklySummary: true,
-        aiInsights: true,
-
-        receiptEnabled: true,
-        autoCrop: true,
-        autoCategorize: true,
-        highQuality: true,
-        saveImages: false,
-
-        smsTracking: true,
-        autoExpense: true,
-        instantNotification: true,
-        syncHistory: false,
-        bankMessagesOnly: true,
-
-        autoBackup: true,
-        backupFrequency: "Daily",
-
-      });
-
-      return true;
-
-    } catch (error) {
-
-      console.error("Failed to reset settings", error);
-
-      return false;
-
-    }
-
-  };
+        throw error;
+      }
+    };
 
   return (
     <SettingsContext.Provider
       value={{
         settings,
+
         loading,
+        saving,
 
         loadSettings,
 
         updateTheme,
+
         updateNotifications,
+
         updateAI,
+
         updateBudget,
+
         updateCurrency,
+
         updateLanguage,
+
         updateReceipt,
+
         updateSMS,
+
         updateBackup,
 
         saveSettings,
+
+        resetNotificationSettings,
+
         resetSettings,
+
         changePassword,
       }}
     >
       {children}
     </SettingsContext.Provider>
   );
-
 }
 
-export const useSettings = () =>
-  useContext(SettingsContext);
+export const useSettings =
+  () => {
+    const context =
+      useContext(
+        SettingsContext
+      );
+
+    if (!context) {
+      throw new Error(
+        "useSettings must be used within SettingsProvider"
+      );
+    }
+
+    return context;
+  };

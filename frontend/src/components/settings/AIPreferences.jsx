@@ -1,141 +1,194 @@
 import { motion } from "framer-motion";
+
 import {
   FaRobot,
   FaLightbulb,
   FaChartLine,
   FaBrain,
-  FaMagic,
 } from "react-icons/fa";
 
 import { useSettings } from "../../context/SettingsContext";
 
+import SettingsToggle from "./SettingsToggle";
+
 export default function AIPreferences() {
-  const { settings, updateAI } = useSettings();
+  const {
+    settings,
+    updateAI,
+  } = useSettings();
 
   const options = [
     {
       key: "smartSuggestions",
       title: "Smart Suggestions",
-      description: "Receive personalized spending recommendations.",
+      description:
+        "Receive personalized spending recommendations.",
       icon: <FaLightbulb />,
     },
     {
       key: "weeklySummary",
       title: "Weekly Summary",
-      description: "Generate AI-powered financial summaries every week.",
+      description:
+        "Generate AI-powered financial summaries every week.",
       icon: <FaChartLine />,
     },
     {
       key: "aiInsights",
       title: "AI Insights",
-      description: "Analyze your spending habits automatically.",
+      description:
+        "Analyze your spending habits automatically.",
       icon: <FaBrain />,
-    },
-    {
-      key: "spendingPrediction",
-      title: "Spending Prediction",
-      description: "Predict your upcoming monthly expenses.",
-      icon: <FaMagic />,
     },
   ];
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 25 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.35 }}
-      className="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden"
+      initial={{
+        opacity: 0,
+        y: 20,
+      }}
+      animate={{
+        opacity: 1,
+        y: 0,
+      }}
+      className="
+        overflow-hidden
+        rounded-3xl
+        border
+        border-slate-200
+        bg-white
+        shadow-lg
+        dark:border-slate-700
+        dark:bg-slate-900
+      "
     >
+
       <div className="bg-gradient-to-r from-[#0B6B57] to-[#12A67D] p-6">
+
         <div className="flex items-center gap-4">
-          <div className="w-14 h-14 rounded-2xl bg-white/20 flex items-center justify-center text-white text-2xl">
+
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/20 text-xl text-white">
             <FaRobot />
           </div>
 
           <div>
+
             <h2 className="text-2xl font-bold text-white">
               AI Preferences
             </h2>
 
-            <p className="text-white/80 mt-1">
-              Customize your AI assistant experience
+            <p className="mt-1 text-sm text-white/80">
+              Customize your AI assistant experience.
             </p>
+
           </div>
+
         </div>
+
       </div>
 
-      <div className="p-6">
-        <div className="rounded-2xl bg-green-50 border border-green-100 p-4 mb-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="font-semibold text-green-700">
-                AI Assistant Status
-              </h3>
+      <div className="p-5 sm:p-6">
 
-              <p className="text-sm text-green-600 mt-1">
-                AI services are active and ready to analyze your finances.
-              </p>
-            </div>
+        <div className="mb-5 flex flex-col gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 dark:border-emerald-900 dark:bg-emerald-950/20 sm:flex-row sm:items-center sm:justify-between">
 
-            <span className="px-4 py-1 rounded-full bg-green-600 text-white text-sm font-medium">
-              Active
-            </span>
+          <div>
+
+            <h3 className="font-semibold text-emerald-700 dark:text-emerald-300">
+              AI Assistant Status
+            </h3>
+
+            <p className="mt-1 text-sm text-emerald-600 dark:text-emerald-400">
+              AI services are active and ready to analyze your finances.
+            </p>
+
           </div>
+
+          <span className="self-start rounded-full bg-emerald-600 px-4 py-1 text-sm font-medium text-white sm:self-auto">
+            Active
+          </span>
+
         </div>
 
         <div className="space-y-4">
-          {options.map((item) => (
-            <motion.div
+
+          {options.map(item => (
+
+            <div
               key={item.key}
-              whileHover={{ scale: 1.01 }}
-              className="flex items-center justify-between border rounded-2xl p-4"
+              className="
+                flex
+                items-start
+                justify-between
+                gap-4
+                rounded-2xl
+                border
+                border-slate-200
+                p-4
+                dark:border-slate-700
+              "
             >
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-xl bg-[#0B6B57]/10 text-[#0B6B57] flex items-center justify-center text-xl">
+
+              <div className="flex min-w-0 items-start gap-4">
+
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#0B6B57]/10 text-lg text-[#0B6B57]">
                   {item.icon}
                 </div>
 
-                <div>
-                  <h3 className="font-semibold text-slate-800">
+                <div className="min-w-0">
+
+                  <h3 className="font-semibold text-slate-800 dark:text-white">
                     {item.title}
                   </h3>
 
-                  <p className="text-sm text-gray-500 mt-1">
+                  <p className="mt-1 text-sm leading-6 text-slate-500 dark:text-slate-400">
                     {item.description}
                   </p>
+
                 </div>
+
               </div>
 
-              <label className="relative inline-flex cursor-pointer items-center">
-                <input
-                  type="checkbox"
-                  className="sr-only peer"
-                  checked={settings.ai[item.key] || false}
-                  onChange={(e) =>
-                    updateAI(item.key, e.target.checked)
+              <div className="pt-1">
+
+                <SettingsToggle
+                  checked={
+                    settings.ai?.[
+                      item.key
+                    ] ?? false
                   }
+                  onChange={() =>
+                    updateAI(
+                      item.key,
+                      !settings.ai?.[
+                        item.key
+                      ]
+                    )
+                  }
+                  label={item.title}
                 />
 
-                <div className="w-12 h-6 rounded-full bg-gray-300 peer-checked:bg-[#0B6B57] transition-all duration-300"></div>
+              </div>
 
-                <div className="absolute left-1 top-1 h-4 w-4 rounded-full bg-white transition-all duration-300 peer-checked:translate-x-6"></div>
-              </label>
-            </motion.div>
+            </div>
+
           ))}
+
         </div>
 
-        <div className="mt-6 rounded-2xl bg-blue-50 border border-blue-100 p-5">
-          <h3 className="font-semibold text-blue-700">
+        <div className="mt-5 rounded-2xl border border-blue-200 bg-blue-50 p-4 dark:border-blue-900 dark:bg-blue-950/20">
+
+          <h3 className="font-semibold text-blue-700 dark:text-blue-300">
             AI Information
           </h3>
 
-          <p className="text-sm text-blue-600 mt-2 leading-6">
-            AI analyzes your expenses, budgets, savings, and income to
-            provide personalized recommendations. Your financial data is
-            processed securely.
+          <p className="mt-2 text-sm leading-6 text-blue-600 dark:text-blue-400">
+            AI analyzes your expenses, budgets, savings, and income to provide personalized guidance.
           </p>
+
         </div>
+
       </div>
+
     </motion.div>
   );
 }

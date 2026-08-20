@@ -10,97 +10,51 @@ import { GoalProvider } from "./GoalContext";
 import { ProfileProvider } from "./ProfileContext";
 import { SettingsProvider } from "./SettingsContext";
 import { ThemeProvider } from "./ThemeContext";
-import Dashboard from "../pages/Dashboard";
 import { DashboardProvider } from "./DashboardContext";
 import { MonthProvider } from "./MonthContext";
 import { UserProvider } from "./UserContext";
 import { SearchProvider } from "./SearchContext";
-import {NotificationProvider} from "./NotificationContext"
-import { NotificationSettingProvider } from "./NotificationSettingContext";
+import { NotificationProvider } from "./NotificationContext";
 import { AIProvider } from "./AIContext";
 
 export default function AppProvider({ children }) {
-
   return (
-
     <AuthProvider>
-
       <AIProvider>
-
-      <NotificationSettingProvider>
-
-      <NotificationProvider>
-
+        <NotificationProvider>
           <SearchProvider>
-
             <UserProvider>
-
               <MonthProvider>
-
                 <DashboardProvider>
-
                   <ExpenseProvider>
-
                     <IncomeProvider>
-
                       <SavingsProvider>
-
                         <CategoryProvider>
-
                           <GoalProvider>
-
                             <ProfileProvider>
-
                               <SettingsProvider>
-
                                 <BudgetProvider>
-
                                   <InsightProvider>
-
                                     <ThemeProvider>
-
                                       <ModalProvider>
-
                                         {children}
-
                                       </ModalProvider>
-
                                     </ThemeProvider>
-
                                   </InsightProvider>
-
                                 </BudgetProvider>
-
                               </SettingsProvider>
-
                             </ProfileProvider>
-
                           </GoalProvider>
-
                         </CategoryProvider>
-
                       </SavingsProvider>
-
                     </IncomeProvider>
-
                   </ExpenseProvider>
-
                 </DashboardProvider>
-
               </MonthProvider>
-
             </UserProvider>
-
           </SearchProvider>
-
         </NotificationProvider>
-
-        </NotificationSettingProvider>
-
-        </AIProvider>
-
+      </AIProvider>
     </AuthProvider>
-
   );
-
 }

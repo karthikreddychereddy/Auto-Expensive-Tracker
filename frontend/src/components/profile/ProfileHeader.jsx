@@ -1,11 +1,11 @@
 import { motion } from "framer-motion";
+
 import {
   FaCamera,
   FaCircleCheck,
   FaWallet,
   FaPiggyBank,
   FaArrowTrendUp,
-  FaHeartPulse,
 } from "react-icons/fa6";
 
 import { useProfile } from "../../context/ProfileContext";
@@ -17,171 +17,159 @@ import { useModal } from "../../context/ModalContext";
 import { formatCurrency } from "../../utils/format";
 
 export default function ProfileHeader() {
-
   const { profile } = useProfile();
 
   const { totalIncome } = useIncome();
 
   const { totalSavings } = useSavings();
 
-  const { expenses } = useExpenses();
+  const {
+    expenses = [],
+    selectedMonthExpenses,
+  } = useExpenses();
 
   const { openModal } = useModal();
 
-  const totalExpense = expenses.reduce(
-    (sum, item) => sum + Number(item.amount),
-    0
-  );
+  const monthlyExpenses =
+    Array.isArray(selectedMonthExpenses)
+      ? selectedMonthExpenses
+      : expenses;
 
-  const balance = totalIncome - totalExpense;
+  const totalExpense =
+    monthlyExpenses.reduce(
+      (sum, item) =>
+        sum +
+        Number(item.amount || 0),
+      0
+    );
+
+  const balance =
+    Number(totalIncome || 0) -
+    totalExpense;
+
+  const firstName =
+    profile?.firstName || "";
+
+  const lastName =
+    profile?.lastName || "";
+
+  const displayName =
+    profile?.name ||
+    `${firstName} ${lastName}`.trim() ||
+    "PaisaTrack User";
+
+  const phone =
+    profile?.phone ||
+    profile?.phoneNumber ||
+    "Not provided";
+
+  const profileImage =
+    profile?.photo ||
+    profile?.profileImage ||
+    null;
+
+  const avatarUrl =
+    `https://ui-avatars.com/api/?name=${encodeURIComponent(
+      displayName
+    )}&background=0B6B57&color=fff&size=300`;
 
   const cards = [
-
     {
-      title: "Balance",
+      title: "This Month Balance",
       value: formatCurrency(balance),
       icon: <FaWallet />,
       color: "bg-emerald-500",
     },
-
     {
-      title: "Savings",
-      value: formatCurrency(totalSavings),
+      title: "Total Savings",
+      value: formatCurrency(
+        Number(totalSavings || 0)
+      ),
       icon: <FaPiggyBank />,
       color: "bg-blue-500",
     },
-
     {
-      title: "Income",
-      value: formatCurrency(totalIncome),
+      title: "This Month Income",
+      value: formatCurrency(
+        Number(totalIncome || 0)
+      ),
       icon: <FaArrowTrendUp />,
       color: "bg-purple-500",
     },
-
-    {
-      title: "Health",
-      value: `${profile.financialHealth}/100`,
-      icon: <FaHeartPulse />,
-      color: "bg-orange-500",
-    },
-
   ];
 
   return (
-
-    <motion.div
-
-      initial={{ opacity:0, y:25 }}
-
-      animate={{ opacity:1, y:0 }}
-
-      className="rounded-[32px] overflow-hidden shadow-2xl"
-
+    <motion.section
+      initial={{
+        opacity: 0,
+        y: 20,
+      }}
+      animate={{
+        opacity: 1,
+        y: 0,
+      }}
+      className="overflow-hidden rounded-[30px] shadow-xl"
     >
+      <div className="bg-gradient-to-r from-[#0B6B57] via-[#11856D] to-[#12A67D] p-6 sm:p-8 lg:p-10">
 
-      <div className="bg-gradient-to-r from-[#0B6B57] via-[#11856D] to-[#12A67D] p-10">
+        <div className="flex flex-col gap-8 lg:flex-row lg:items-center lg:justify-between">
 
-        <div className="flex flex-col xl:flex-row justify-between gap-10">
+          <div className="flex min-w-0 flex-col items-center gap-6 sm:flex-row sm:items-start">
 
-          <div className="flex gap-8">
-
-            <div className="relative">
+            <div className="relative shrink-0">
 
               <img
-
                 src={
-                  profile.photo ||
-                  `https://ui-avatars.com/api/?name=${encodeURIComponent(
-                    profile.name
-                  )}&background=0B6B57&color=fff&size=300`
+                  profileImage ||
+                  avatarUrl
                 }
-
-                className="w-40 h-40 rounded-full border-[5px] border-white object-cover shadow-xl"
-
+                alt={`${displayName} profile`}
+                className="h-28 w-28 rounded-full border-4 border-white object-cover shadow-xl sm:h-36 sm:w-36"
               />
 
               <button
-
-                onClick={() => openModal("profile")}
-
-                className="absolute bottom-2 right-2 w-12 h-12 rounded-full bg-white text-[#0B6B57] flex items-center justify-center shadow-xl hover:scale-110 transition"
-
+                type="button"
+                onClick={() =>
+                  openModal("profile")
+                }
+                aria-label="Change profile picture"
+                className="absolute bottom-1 right-1 flex h-11 w-11 items-center justify-center rounded-full bg-white text-[#0B6B57] shadow-lg transition hover:scale-105"
               >
-
                 <FaCamera />
-
               </button>
 
             </div>
 
-            <div className="flex flex-col justify-center flex-1">
+            <div className="min-w-0 flex-1 text-center sm:text-left">
 
-              <div className="flex items-center justify-between flex-wrap gap-4">
+              <div className="flex flex-col items-center gap-3 sm:flex-row sm:flex-wrap">
 
-                <div className="flex items-center gap-4 flex-wrap">
+                <h1 className="max-w-full break-words text-3xl font-extrabold text-white sm:text-4xl lg:text-5xl">
+                  {displayName}
+                </h1>
 
-                  <h1 className="text-5xl font-extrabold text-white">
+                <span className="flex items-center gap-2 rounded-full bg-white/15 px-4 py-2 text-sm font-semibold text-white backdrop-blur">
+                  <FaCircleCheck />
 
-                    {profile.name}
-
-                  </h1>
-
-                  <span className="px-4 py-2 rounded-full bg-blue-500 text-white flex items-center gap-2 font-semibold">
-
-                    <FaCircleCheck />
-
-                    Verified
-
-                  </span>
-
-                </div>
-
-                <button
-                  onClick={() => openModal("profile")}
-                  className="px-6 py-3 rounded-2xl bg-white text-[#0B6B57] font-bold hover:scale-105 transition"
-                >
-                  Edit Profile
-                </button>
+                  Verified
+                </span>
 
               </div>
 
-              <div className="mt-6 space-y-4 text-white/90 text-lg">
+              <div className="mt-5 space-y-2 text-sm text-white/90 sm:text-base">
 
-                <div className="flex items-center gap-3">
+                <p className="break-all">
+                  {profile?.email ||
+                    "Email unavailable"}
+                </p>
 
-                  <span className="text-xl">📧</span>
+                <p>
+                  {phone}
+                </p>
 
-                  <span className="break-all">
-
-                    {profile.email}
-
-                  </span>
-
-                </div>
-
-                <div className="flex items-center gap-3">
-
-                  <span className="text-xl">📱</span>
-
-                  <span>
-
-                    {profile.phone || "+91 XXXXX XXXXX"}
-
-                  </span>
-
-                </div>
-
-                <div className="flex items-center gap-3">
-
-                  <span className="text-xl">📅</span>
-
-                  <span>
-
-                    Joined July 2026
-
-                  </span>
-
-                </div>
+                <p className="text-white/70">
+                  PaisaTrack member
+                </p>
 
               </div>
 
@@ -189,56 +177,63 @@ export default function ProfileHeader() {
 
           </div>
 
+          <button
+            type="button"
+            onClick={() =>
+              openModal("profile")
+            }
+            className="self-center rounded-2xl bg-white px-6 py-3 font-bold text-[#0B6B57] shadow transition hover:-translate-y-0.5 lg:self-start"
+          >
+            Edit Profile
+          </button>
+
         </div>
 
-        <div className="grid md:grid-cols-2 xl:grid-cols-4 gap-6 mt-10">
+        <div className="mt-8 grid gap-5 md:grid-cols-3">
 
-          {cards.map((card,index)=>(
+          {cards.map(
+            (card, index) => (
+              <motion.div
+                key={card.title}
+                initial={{
+                  opacity: 0,
+                  y: 20,
+                }}
+                animate={{
+                  opacity: 1,
+                  y: 0,
+                }}
+                transition={{
+                  delay:
+                    index * 0.08,
+                }}
+                whileHover={{
+                  y: -4,
+                }}
+                className="rounded-3xl border border-white/15 bg-white/10 p-5 backdrop-blur-lg"
+              >
 
-            <motion.div
+                <div
+                  className={`flex h-12 w-12 items-center justify-center rounded-2xl text-xl text-white ${card.color}`}
+                >
+                  {card.icon}
+                </div>
 
-              key={card.title}
+                <p className="mt-5 text-sm text-white/75">
+                  {card.title}
+                </p>
 
-              initial={{opacity:0,y:30}}
+                <h2 className="mt-2 break-words text-2xl font-bold text-white lg:text-3xl">
+                  {card.value}
+                </h2>
 
-              animate={{opacity:1,y:0}}
-
-              transition={{delay:index*.12}}
-
-              whileHover={{y:-6}}
-
-              className="bg-white/15 backdrop-blur-lg rounded-3xl p-6 border border-white/20"
-
-            >
-
-              <div className={`${card.color} w-14 h-14 rounded-2xl text-white flex items-center justify-center text-2xl`}>
-
-                {card.icon}
-
-              </div>
-
-              <p className="text-white/80 mt-6">
-
-                {card.title}
-
-              </p>
-
-              <h2 className="text-white text-3xl font-bold mt-2">
-
-                {card.value}
-
-              </h2>
-
-            </motion.div>
-
-          ))}
+              </motion.div>
+            )
+          )}
 
         </div>
 
       </div>
-
-    </motion.div>
-
+    </motion.section>
   );
-
 }

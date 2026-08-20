@@ -1,117 +1,62 @@
 import { useNavigate } from "react-router-dom";
-
 import { useDashboard } from "../../context/DashboardContext";
-
 import { formatCurrency } from "../../utils/format";
 
 export default function RecentActivity() {
-
   const navigate = useNavigate();
-
   const { recentTransactions } = useDashboard();
 
   return (
-
-    <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-6">
-
-      <div className="flex justify-between items-center mb-6">
-
-        <h2 className="text-xl font-bold">
-
+    <section className="h-full rounded-2xl border border-gray-100 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-800 sm:rounded-3xl sm:p-6">
+      <div className="mb-5 flex items-center justify-between gap-3 sm:mb-6">
+        <h2 className="text-lg font-bold text-slate-800 dark:text-white sm:text-xl">
           Recent Activity
-
         </h2>
 
         <button
+          type="button"
           onClick={() => navigate("/expenses")}
-          className="text-[#0B6B57] font-medium hover:underline"
+          className="shrink-0 text-sm font-medium text-[#0B6B57] hover:underline dark:text-emerald-400 sm:text-base"
         >
-
           View All →
-
         </button>
-
       </div>
 
-      <div className="space-y-5">
-
-        {
-
-          recentTransactions.length === 0
-
-          ?
-
-          (
-
-            <p className="text-gray-500">
-
-              No recent activity.
-
-            </p>
-
-          )
-
-          :
-
-          recentTransactions.map(item => (
-
-            <div
+      <div className="space-y-4 sm:space-y-5">
+        {recentTransactions.length === 0 ? (
+          <p className="text-sm text-gray-500 dark:text-gray-400">
+            No recent activity.
+          </p>
+        ) : (
+          recentTransactions.map((item) => (
+            <article
               key={item.id}
-              className="flex justify-between items-center border-b pb-4 last:border-none"
+              className="flex min-w-0 flex-col gap-2 border-b border-gray-100 pb-4 last:border-none last:pb-0 dark:border-slate-700 min-[430px]:flex-row min-[430px]:items-center min-[430px]:justify-between"
             >
-
-              <div>
-
-                <h3 className="font-semibold">
-
+              <div className="min-w-0">
+                <h3 className="break-words font-semibold text-slate-800 dark:text-white">
                   {item.description || "Transaction"}
-
                 </h3>
-
-                <p className="text-sm text-gray-500">
-
+                <p className="break-words text-sm text-gray-500 dark:text-gray-400">
                   {item.category}
-
                 </p>
-
-                <p className="text-xs text-gray-400">
-
-                  {item.date}
-
-                </p>
-
+                <p className="text-xs text-gray-400 dark:text-gray-500">{item.date}</p>
               </div>
 
-              <div>
-
-                <span
-                  className={
-                    item.transactionType === "INCOME"
-                      ? "font-bold text-green-600"
-                      : "font-bold text-red-500"
-                  }
-                >
-
-                  {item.transactionType === "INCOME" ? "+" : "-"}
-
-                  {" "}
-
-                  {formatCurrency(item.amount)}
-
-                </span>
-
-              </div>
-
-            </div>
-
+              <span
+                className={`break-words font-bold min-[430px]:shrink-0 min-[430px]:text-right ${
+                  item.transactionType === "INCOME"
+                    ? "text-green-600 dark:text-green-400"
+                    : "text-red-500 dark:text-red-400"
+                }`}
+              >
+                {item.transactionType === "INCOME" ? "+" : "-"}{" "}
+                {formatCurrency(item.amount)}
+              </span>
+            </article>
           ))
-
-        }
-
+        )}
       </div>
-
-    </div>
-
+    </section>
   );
-
 }

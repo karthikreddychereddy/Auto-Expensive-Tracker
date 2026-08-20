@@ -25,6 +25,8 @@ import Settings from "./pages/Settings";
 import Profile from "./pages/Profile";
 import Insights from "./pages/Insights";
 import ModalContainer from "./components/common/ModalContainer";
+import VerifyEmail from "./pages/VerifyEmail";
+import OAuthSuccess from "./pages/OAuthSuccess";
 
 export default function App() {
 
@@ -43,6 +45,16 @@ export default function App() {
           <Route path="/login" element={<Login />} />
 
           <Route path="/register" element={<Register />} />
+
+          <Route
+            path="/verify-email"
+            element={<VerifyEmail />}
+          />
+
+          <Route
+            path="/oauth-success"
+            element={<OAuthSuccess />}
+          />
 
           <Route path="/forgot-password" element={<ForgotPassword />} />
 

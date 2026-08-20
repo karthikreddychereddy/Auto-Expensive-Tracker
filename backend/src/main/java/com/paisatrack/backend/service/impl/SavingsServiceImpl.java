@@ -2,149 +2,386 @@ package com.paisatrack.backend.service.impl;
 
 import com.paisatrack.backend.dto.SavingsRequest;
 import com.paisatrack.backend.dto.SavingsResponse;
+
 import com.paisatrack.backend.entity.Savings;
 import com.paisatrack.backend.entity.User;
+
 import com.paisatrack.backend.repository.SavingsRepository;
 import com.paisatrack.backend.repository.UserRepository;
+
 import com.paisatrack.backend.service.SavingsService;
+
 import com.paisatrack.backend.util.SecurityUtil;
+
 import lombok.RequiredArgsConstructor;
+
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
+import java.time.LocalDate;
+import java.time.YearMonth;
+
+import java.time.format.DateTimeParseException;
+
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class SavingsServiceImpl implements SavingsService {
+public class SavingsServiceImpl
+        implements SavingsService {
 
-    private final SavingsRepository savingsRepository;
-    private final UserRepository userRepository;
+        private final SavingsRepository
+                savingsRepository;
 
-    @Override
-    public SavingsResponse createSaving(SavingsRequest request) {
+        private final UserRepository
+                userRepository;
 
-        String email = SecurityUtil.getCurrentUserEmail();
+        // ==========================================
+        // CREATE
+        // ==========================================
 
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+        @Override
+        public SavingsResponse createSaving(
+                SavingsRequest request
+        ) {
 
-        Savings saving = Savings.builder()
-                .user(user)
-                .amount(request.getAmount())
-                .source(request.getSource())
-                .description(request.getDescription())
-                .savingDate(request.getSavingDate())
-                .build();
+                User user =
+                        getCurrentUser();
 
-        Savings saved = savingsRepository.save(saving);
+                Savings saving =
+                        Savings.builder()
 
-        return SavingsResponse.builder()
-                .id(saved.getId())
-                .amount(saved.getAmount())
-                .source(saved.getSource())
-                .description(saved.getDescription())
-                .savingDate(saved.getSavingDate())
-                .build();
-    }
+                                .user(user)
 
-    @Override
-    public List<SavingsResponse> getAllSavings() {
+                                .amount(
+                                        request.getAmount()
+                                )
 
-        String email = SecurityUtil.getCurrentUserEmail();
+                                .source(
+                                        request.getSource()
+                                )
 
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                                .description(
+                                        request.getDescription()
+                                )
 
-        List<SavingsResponse> response = new ArrayList<>();
+                                .savingDate(
+                                        request.getSavingDate()
+                                )
 
-        savingsRepository.findByUser(user).forEach(saving -> {
+                                .build();
 
-            response.add(
-                    SavingsResponse.builder()
-                            .id(saving.getId())
-                            .amount(saving.getAmount())
-                            .source(saving.getSource())
-                            .description(saving.getDescription())
-                            .savingDate(saving.getSavingDate())
-                            .build()
-            );
+                Savings saved =
+                        savingsRepository.save(
+                                saving
+                        );
 
-        });
-
-        return response;
-    }
-
-    @Override
-    public SavingsResponse getSavingById(Long id) {
-
-        String email = SecurityUtil.getCurrentUserEmail();
-
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-
-        Savings saving = savingsRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Saving not found"));
-
-        if (!saving.getUser().getId().equals(user.getId())) {
-            throw new RuntimeException("Unauthorized");
+                return mapSaving(
+                        saved
+                );
         }
 
-        return SavingsResponse.builder()
-                .id(saving.getId())
-                .amount(saving.getAmount())
-                .source(saving.getSource())
-                .description(saving.getDescription())
-                .savingDate(saving.getSavingDate())
-                .build();
-    }
+        // ==========================================
+        // GET SAVINGS
+        // ==========================================
 
-    @Override
-    public SavingsResponse updateSaving(Long id, SavingsRequest request) {
+        @Override
+        public List<SavingsResponse>
+        getAllSavings(
+                String month
+        ) {
 
-        String email = SecurityUtil.getCurrentUserEmail();
+                User user =
+                        getCurrentUser();
 
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                List<Savings> savings =
+                        savingsRepository
+                                .findByUser(
+                                        user
+                                );
 
-        Savings saving = savingsRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Saving not found"));
+                /*
+                * Keep compatibility if no month
+                * is supplied.
+                */
+                if (
+                        month == null ||
+                        month.isBlank()
+                ) {
 
-        if (!saving.getUser().getId().equals(user.getId())) {
-            throw new RuntimeException("Unauthorized");
+                return savings
+                        .stream()
+
+                        .map(
+                                this::mapSaving
+                        )
+
+                        .toList();
+                }
+
+                YearMonth selectedMonth =
+                        parseMonth(
+                                month
+                        );
+
+                LocalDate firstDay =
+                        selectedMonth.atDay(
+                                1
+                        );
+
+                LocalDate lastDay =
+                        selectedMonth
+                                .atEndOfMonth();
+
+                return savings
+                        .stream()
+
+                        .filter(
+                                saving -> {
+
+                                LocalDate date =
+                                        saving.getSavingDate();
+
+                                return (
+                                        date != null
+                                        &&
+                                        !date.isBefore(
+                                                firstDay
+                                        )
+                                        &&
+                                        !date.isAfter(
+                                                lastDay
+                                        )
+                                );
+                                }
+                        )
+
+                        .map(
+                                this::mapSaving
+                        )
+
+                        .toList();
         }
 
-        saving.setAmount(request.getAmount());
-        saving.setSource(request.getSource());
-        saving.setDescription(request.getDescription());
-        saving.setSavingDate(request.getSavingDate());
+        // ==========================================
+        // GET BY ID
+        // ==========================================
 
-        Savings updated = savingsRepository.save(saving);
+        @Override
+        public SavingsResponse getSavingById(
+                Long id
+        ) {
 
-        return SavingsResponse.builder()
-                .id(updated.getId())
-                .amount(updated.getAmount())
-                .source(updated.getSource())
-                .description(updated.getDescription())
-                .savingDate(updated.getSavingDate())
-                .build();
-    }
+                User user =
+                        getCurrentUser();
 
-    @Override
-    public void deleteSaving(Long id) {
+                Savings saving =
+                        savingsRepository
+                                .findById(id)
 
-        String email = SecurityUtil.getCurrentUserEmail();
+                                .orElseThrow(() ->
+                                        new RuntimeException(
+                                                "Saving not found"
+                                        )
+                                );
 
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                verifyOwnership(
+                        saving,
+                        user
+                );
 
-        Savings saving = savingsRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Saving not found"));
-
-        if (!saving.getUser().getId().equals(user.getId())) {
-            throw new RuntimeException("Unauthorized");
+                return mapSaving(
+                        saving
+                );
         }
 
-        savingsRepository.delete(saving);
-    }
+        // ==========================================
+        // UPDATE
+        // ==========================================
+
+        @Override
+        public SavingsResponse updateSaving(
+                Long id,
+                SavingsRequest request
+        ) {
+
+                User user =
+                        getCurrentUser();
+
+                Savings saving =
+                        savingsRepository
+                                .findById(id)
+
+                                .orElseThrow(() ->
+                                        new RuntimeException(
+                                                "Saving not found"
+                                        )
+                                );
+
+                verifyOwnership(
+                        saving,
+                        user
+                );
+
+                saving.setAmount(
+                        request.getAmount()
+                );
+
+                saving.setSource(
+                        request.getSource()
+                );
+
+                saving.setDescription(
+                        request.getDescription()
+                );
+
+                saving.setSavingDate(
+                        request.getSavingDate()
+                );
+
+                Savings updated =
+                        savingsRepository.save(
+                                saving
+                        );
+
+                return mapSaving(
+                        updated
+                );
+        }
+
+        // ==========================================
+        // DELETE
+        // ==========================================
+
+        @Override
+        public void deleteSaving(
+                Long id
+        ) {
+
+                User user =
+                        getCurrentUser();
+
+                Savings saving =
+                        savingsRepository
+                                .findById(id)
+
+                                .orElseThrow(() ->
+                                        new RuntimeException(
+                                                "Saving not found"
+                                        )
+                                );
+
+                verifyOwnership(
+                        saving,
+                        user
+                );
+
+                savingsRepository.delete(
+                        saving
+                );
+        }
+
+        // ==========================================
+        // CURRENT USER
+        // ==========================================
+
+        private User getCurrentUser() {
+
+                String email =
+                        SecurityUtil
+                                .getCurrentUserEmail();
+
+                return userRepository
+                        .findByEmail(
+                                email
+                        )
+
+                        .orElseThrow(() ->
+                                new RuntimeException(
+                                        "User not found"
+                                )
+                        );
+        }
+
+        // ==========================================
+        // OWNERSHIP
+        // ==========================================
+
+        private void verifyOwnership(
+                Savings saving,
+                User user
+        ) {
+
+                if (
+                        saving.getUser() == null ||
+                        !saving
+                                .getUser()
+                                .getId()
+                                .equals(
+                                        user.getId()
+                                )
+                ) {
+
+                throw new RuntimeException(
+                        "Unauthorized"
+                );
+                }
+        }
+
+        // ==========================================
+        // PARSE YYYY-MM
+        // ==========================================
+
+        private YearMonth parseMonth(
+                String month
+        ) {
+
+                try {
+
+                return YearMonth.parse(
+                        month
+                );
+
+                } catch (
+                        DateTimeParseException exception
+                ) {
+
+                throw new RuntimeException(
+                        "Invalid month. Expected format: YYYY-MM"
+                );
+                }
+        }
+
+        // ==========================================
+        // MAP RESPONSE
+        // ==========================================
+
+        private SavingsResponse mapSaving(
+                Savings saving
+        ) {
+
+                return SavingsResponse
+                        .builder()
+
+                        .id(
+                                saving.getId()
+                        )
+
+                        .amount(
+                                saving.getAmount()
+                        )
+
+                        .source(
+                                saving.getSource()
+                        )
+
+                        .description(
+                                saving.getDescription()
+                        )
+
+                        .savingDate(
+                                saving.getSavingDate()
+                        )
+
+                        .build();
+        }
 }

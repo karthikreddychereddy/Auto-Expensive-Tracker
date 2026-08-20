@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+
 import {
   FaBullseye,
   FaCircleCheck,
@@ -9,20 +10,56 @@ import {
 import { useGoal } from "../../context/GoalContext";
 import { formatCurrency } from "../../utils/format";
 
-export default function GoalsOverview() {
+import EmptyState from "../common/EmptyState";
 
+export default function GoalsOverview() {
   const {
-    goals,
-    totalGoals,
-    activeGoals,
-    completedGoals,
-    overallProgress,
+    goals = [],
+    totalGoals = 0,
+    activeGoals = 0,
+    completedGoals = 0,
+    overallProgress = 0,
   } = useGoal();
 
-  const targetAmount = goals.reduce(
-    (sum, goal) => sum + Number(goal.targetAmount || 0),
-    0
-  );
+  const progress =
+    Math.min(
+      100,
+      Math.max(
+        0,
+        Number(
+          overallProgress || 0
+        )
+      )
+    );
+
+  const targetAmount =
+    goals.reduce(
+      (sum, goal) =>
+        sum +
+        Number(
+          goal.targetAmount || 0
+        ),
+      0
+    );
+
+  if (goals.length === 0) {
+    return (
+      <section className="space-y-5">
+
+        <h2 className="text-2xl font-bold text-slate-800 dark:text-white">
+          Goals Overview
+        </h2>
+
+        <EmptyState
+          compact
+          icon={<FaBullseye />}
+          title="No financial goals yet"
+          description="Create a goal from the Goals page to start tracking your progress here."
+        />
+
+      </section>
+    );
+  }
 
   const cards = [
     {
@@ -40,77 +77,104 @@ export default function GoalsOverview() {
     {
       title: "Completed",
       value: completedGoals,
-      icon: <FaCircleCheck />,
+      icon:
+        <FaCircleCheck />,
       color: "bg-green-500",
     },
     {
-      title: "Target",
-      value: formatCurrency(targetAmount),
+      title: "Total Target",
+      value:
+        formatCurrency(
+          targetAmount
+        ),
       icon: <FaCoins />,
       color: "bg-purple-500",
     },
   ];
 
   return (
-    <section className="space-y-8">
+    <section className="min-w-0 space-y-4 sm:space-y-6">
 
-      <div className="flex justify-between items-center">
+      <div className="flex flex-wrap items-center justify-between gap-3">
 
-        <h2 className="text-3xl font-bold">
-          Goals Overview
-        </h2>
+        <div>
+          <h2 className="text-2xl font-bold text-slate-800 dark:text-white">
+            Goals Overview
+          </h2>
+
+          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+            Track progress across your financial goals.
+          </p>
+        </div>
 
         <span className="font-bold text-[#0B6B57]">
-          {overallProgress.toFixed(1)}%
+          {progress.toFixed(1)}%
         </span>
 
       </div>
 
-      <div className="w-full h-4 rounded-full bg-gray-200 overflow-hidden">
+      <div className="h-3 w-full overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700">
 
         <motion.div
-          initial={{ width: 0 }}
-          animate={{ width: `${overallProgress}%` }}
-          transition={{ duration: 1 }}
+          initial={{
+            width: 0,
+          }}
+          animate={{
+            width:
+              `${progress}%`,
+          }}
+          transition={{
+            duration: 1,
+          }}
           className="h-full bg-gradient-to-r from-[#0B6B57] to-[#12A67D]"
         />
 
       </div>
 
-      <div className="grid md:grid-cols-2 xl:grid-cols-4 gap-6">
+      <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
 
-        {cards.map((card, i) => (
+        {cards.map(
+          (card, index) => (
+            <motion.div
+              key={card.title}
+              initial={{
+                opacity: 0,
+                y: 20,
+              }}
+              animate={{
+                opacity: 1,
+                y: 0,
+              }}
+              transition={{
+                delay:
+                  index * 0.08,
+              }}
+              whileHover={{
+                y: -4,
+              }}
+              className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-700 dark:bg-slate-900"
+            >
 
-          <motion.div
-            key={card.title}
-            initial={{ opacity: 0, y: 25 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: i * 0.1 }}
-            whileHover={{ y: -5 }}
-            className="bg-white rounded-3xl border shadow-lg p-6"
-          >
+              <div
+                className={`flex h-12 w-12 items-center justify-center rounded-2xl text-xl text-white ${card.color}`}
+              >
+                {card.icon}
+              </div>
 
-            <div className={`w-14 h-14 ${card.color} rounded-2xl text-white flex items-center justify-center text-2xl`}>
+              <p className="mt-4 text-sm text-slate-500 dark:text-slate-400">
+                {card.title}
+              </p>
 
-              {card.icon}
+              <h3 className="mt-2 break-words text-2xl font-bold text-slate-800 dark:text-white">
+                {card.value}
+              </h3>
 
-            </div>
-
-            <p className="text-gray-500 mt-5">
-              {card.title}
-            </p>
-
-            <h2 className="text-3xl font-bold mt-2">
-              {card.value}
-            </h2>
-
-          </motion.div>
-
-        ))}
+            </motion.div>
+          )
+        )}
 
       </div>
 
     </section>
   );
-
 }

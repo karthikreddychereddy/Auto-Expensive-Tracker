@@ -35,7 +35,7 @@ export default function SavingsHistory() {
 
   return (
     <>
-      <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-6">
+      <div className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-800 sm:rounded-3xl sm:p-6">
         <div className="mb-6">
           <h2 className="text-2xl font-bold">
             Savings History
@@ -57,7 +57,7 @@ export default function SavingsHistory() {
                 key={item.id}
                 className="border rounded-2xl p-5 hover:bg-gray-50 transition"
               >
-                <div className="flex justify-between items-start">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                   <div className="space-y-2">
                     <h3 className="text-xl font-semibold">
                       {formatCurrency(item.amount)}

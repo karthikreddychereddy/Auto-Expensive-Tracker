@@ -1,103 +1,107 @@
 import { useGoal } from "../../context/GoalContext";
 
 export default function GoalHistory() {
+  const { goals } = useGoal();
 
-    const { goals } = useGoal();
+  return (
+    <div className="rounded-3xl border border-gray-100 bg-white p-6 shadow-sm">
 
-    return (
+      <h2 className="mb-6 text-2xl font-bold">
+        Goal History
+      </h2>
 
-        <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-6">
+      <div className="overflow-x-auto">
 
-            <h2 className="text-2xl font-bold mb-6">
+        <table className="w-full">
 
-                Goal History
+          <thead>
+            <tr className="border-b">
 
-            </h2>
+              <th className="py-3 text-left">
+                Goal
+              </th>
 
-            <div className="overflow-x-auto">
+              <th className="text-center">
+                Saved
+              </th>
 
-                <table className="w-full">
+              <th className="text-center">
+                Target
+              </th>
 
-                    <thead>
+              <th className="text-center">
+                Deadline
+              </th>
 
-                        <tr className="border-b">
+              <th className="text-center">
+                Status
+              </th>
 
-                            <th className="text-left py-3">Goal</th>
+            </tr>
+          </thead>
 
-                            <th>Saved</th>
+          <tbody>
 
-                            <th>Target</th>
+            {goals.length === 0 ? (
+              <tr>
+                <td
+                  colSpan={5}
+                  className="py-10 text-center text-gray-500"
+                >
+                  No goals found.
+                </td>
+              </tr>
+            ) : (
+              goals.map((item) => (
+                <tr
+                  key={item.id}
+                  className="border-b transition hover:bg-gray-50"
+                >
 
-                            <th>Deadline</th>
+                  <td className="py-4 font-medium">
+                    {item.title}
+                  </td>
 
-                            <th>Status</th>
+                  <td className="text-center">
+                    ₹
+                    {Number(
+                      item.savedAmount || 0
+                    ).toLocaleString()}
+                  </td>
 
-                            <th>Priority</th>
+                  <td className="text-center">
+                    ₹
+                    {Number(
+                      item.targetAmount || 0
+                    ).toLocaleString()}
+                  </td>
 
-                        </tr>
+                  <td className="text-center">
+                    {item.deadline || "-"}
+                  </td>
 
-                    </thead>
+                  <td className="text-center">
+                    <span
+                      className={`rounded-full px-3 py-1 text-sm font-medium ${
+                        item.status === "Completed"
+                          ? "bg-green-100 text-green-700"
+                          : "bg-blue-100 text-blue-700"
+                      }`}
+                    >
+                      {item.status}
+                    </span>
+                  </td>
 
-                    <tbody>
+                </tr>
+              ))
+            )}
 
-                        {goals.map(item=>(
+          </tbody>
 
-                            <tr
+        </table>
 
-                                key={item.id}
+      </div>
 
-                                className="border-b hover:bg-gray-50"
-
-                            >
-
-                                <td className="py-4 font-medium">
-
-                                    {item.title}
-
-                                </td>
-
-                                <td className="text-center">
-
-                                    ₹{Number(item.savedAmount || 0).toLocaleString()}
-
-                                </td>
-
-                                <td className="text-center">
-
-                                    ₹{Number(item.targetAmount || 0).toLocaleString()}
-
-                                </td>
-
-                                <td className="text-center">
-
-                                    {item.deadline}
-
-                                </td>
-
-                                <td className="text-center">
-
-                                    {item.status}
-
-                                </td>
-
-                                <td className="text-center">
-
-                                    {item.priority}
-
-                                </td>
-
-                            </tr>
-
-                        ))}
-
-                    </tbody>
-
-                </table>
-
-            </div>
-
-        </div>
-
-    );
-
+    </div>
+  );
 }

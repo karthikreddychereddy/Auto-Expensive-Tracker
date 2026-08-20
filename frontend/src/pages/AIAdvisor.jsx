@@ -1,70 +1,156 @@
-import { useState } from "react";
-import { useAI } from "../context/AIContext";
+import {
+  useState,
+} from "react";
+
+import {
+  useAI,
+} from "../context/AIContext";
+
 import AIHeader from "../components/ai/layout/AIHeader";
 import AISidebar from "../components/ai/layout/AISidebar";
 
 import ChatWindow from "../components/ai/chat/ChatWindow";
 import ChatComposer from "../components/ai/composer/ChatComposer";
 
-export default function AIAdvisor() {
+import PageLoader from "../components/common/PageLoader";
 
+export default function AIAdvisor() {
   const {
     messages,
     loading,
+    initialized,
     sendMessage,
+    stopGenerating,
   } = useAI();
 
-  const [input, setInput] = useState("");
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [
+    input,
+    setInput,
+  ] = useState("");
 
-  async function handleSubmit(e) {
+  const [
+    sidebarOpen,
+    setSidebarOpen,
+  ] = useState(false);
 
-    e.preventDefault();
+  const [
+    selectedFile,
+    setSelectedFile,
+  ] = useState(null);
 
-    if (!input.trim()) return;
+  async function handleSubmit(
+    event
+  ) {
+    event?.preventDefault?.();
 
-    await sendMessage(input);
+    if (
+      !input.trim() &&
+      !selectedFile
+    ) {
+      return;
+    }
 
-    setInput("");
+    try {
+      await sendMessage(
+        input,
+        selectedFile
+      );
 
+      setInput("");
+      setSelectedFile(
+        null
+      );
+    } catch (error) {
+      console.error(
+        "Failed to send AI message",
+        error
+      );
+    }
+  }
+
+  if (!initialized) {
+    return (
+      <PageLoader message="Loading PaisaTrack AI..." />
+    );
   }
 
   return (
-
-    <div className="relative flex h-full overflow-hidden bg-slate-50">
-
+    <div
+      className="
+        relative
+        flex
+        h-full
+        min-h-0
+        overflow-hidden
+        bg-[#f7f8fa]
+        dark:bg-slate-950
+      "
+    >
       <AISidebar
         open={sidebarOpen}
-        onClose={() => setSidebarOpen(false)}
+        onClose={() =>
+          setSidebarOpen(false)
+        }
       />
 
-      <div className="flex h-full flex-1 flex-col overflow-hidden">
-
+      <div
+        className="
+          flex
+          h-full
+          min-w-0
+          flex-1
+          flex-col
+          overflow-hidden
+        "
+      >
         <AIHeader
-          onMenuClick={() => setSidebarOpen(true)}
+          onMenuClick={() =>
+            setSidebarOpen(true)
+          }
         />
 
-        <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden">
-
+        <div
+          className="
+            relative
+            flex
+            min-h-0
+            flex-1
+            flex-col
+            overflow-hidden
+          "
+        >
           <ChatWindow
             messages={messages}
             loading={loading}
-            sendMessage={sendMessage}
+            sendMessage={
+              sendMessage
+            }
           />
 
           <ChatComposer
             value={input}
             onChange={setInput}
-            onSubmit={handleSubmit}
+            onSubmit={
+              handleSubmit
+            }
             loading={loading}
+            selectedFile={
+              selectedFile
+            }
+            onFileChange={
+              setSelectedFile
+            }
+            onRemoveFile={() =>
+              setSelectedFile(
+                null
+              )
+            }
+            onStop={
+              stopGenerating
+            }
           />
-
         </div>
-
       </div>
-
     </div>
-
   );
-
 }

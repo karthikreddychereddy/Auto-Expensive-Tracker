@@ -1,303 +1,419 @@
 import {
   createContext,
+  useCallback,
   useContext,
   useEffect,
-  useState,
-  useCallback,
   useMemo,
+  useState,
 } from "react";
 
 import toast from "react-hot-toast";
 
-import { useAuth } from "./AuthContext";
-import { useSearch } from "./SearchContext";
+import {
+  useAuth,
+} from "./AuthContext";
 
-import { expenseService } from "../services/expenseService";
-import { dashboardService } from "../services/dashboardService";
-import { filterExpenses } from "../utils/expenseFilters";
-import { useMonth } from "./MonthContext";
+import {
+  useMonth,
+} from "./MonthContext";
 
-const ExpenseContext = createContext(null);
+import {
+  expenseService,
+} from "../services/expenseService";
 
-export function ExpenseProvider({ children }) {
+import {
+  dashboardService,
+} from "../services/dashboardService";
 
-  const { user } = useAuth();
-  const { searchText } = useSearch();
+const ExpenseContext =
+  createContext(null);
 
-  // ==========================
-  // State
-  // ==========================
+export function ExpenseProvider({
+  children,
+}) {
+  const {
+    user,
+  } = useAuth();
 
-  const [expenses, setExpenses] = useState([]);
+  const {
+    selectedMonth,
+  } = useMonth();
 
-  const [search, setSearch] = useState("");
+  const [
+    expenses,
+    setExpenses,
+  ] = useState([]);
 
-  const { selectedMonth } = useMonth();
+  const [
+    search,
+    setSearch,
+  ] = useState("");
 
-  const [categoryFilter, setCategoryFilter] =
-    useState("All");
+  const [
+    categoryFilter,
+    setCategoryFilter,
+  ] = useState("All");
 
-  const [paymentFilter, setPaymentFilter] =
-    useState("All");
+  const [
+    paymentFilter,
+    setPaymentFilter,
+  ] = useState("All");
 
-  const [loading, setLoading] =
-    useState(false);
+  const [
+    loading,
+    setLoading,
+  ] = useState(false);
 
-  const [stats, setStats] =
-    useState(null);
+  const [
+    stats,
+    setStats,
+  ] = useState(null);
 
-  // ==========================
-  // Fetch Expenses
-  // ==========================
+  // ==========================================
+  // MAP BACKEND EXPENSE
+  // ==========================================
 
-  const fetchExpenses = useCallback(async () => {
+  const mapExpense = useCallback(
+    expense => ({
+      id: expense.id,
 
-    setLoading(true);
+      title:
+        expense.description ||
+        expense.merchant ||
+        "Expense",
 
-    try {
+      description:
+        expense.description ||
+        "",
 
-      const data =
-        await expenseService.list({
-                  month: selectedMonth,
-              });
+      amount:
+        Number(
+          expense.amount || 0
+        ),
 
-      const mappedExpenses =
-        (Array.isArray(data)
-          ? data
-          : data.items || []
-        ).map(expense => ({
+      category:
+        expense.category ||
+        "Other",
 
-          id: expense.id,
-          title: expense.description,
-          amount: expense.amount,
-          category: expense.category,
-          paymentMethod: expense.paymentMode,
-          merchant: expense.merchant,
-          date: expense.expenseDate,
-          type: "Essential",
+      paymentMethod:
+        expense.paymentMode ||
+        "",
 
-        }));
+      merchant:
+        expense.merchant ||
+        "",
 
-      setExpenses(mappedExpenses);
+      date:
+        expense.expenseDate,
 
-    }
+      transactionType:
+        expense.transactionType,
 
-    catch (error) {
+      source:
+        expense.source,
 
-      console.error(
-        "Failed to fetch expenses:",
-        error
-      );
+      receiptImage:
+        expense.receiptImage,
 
-    }
+      type: "Essential",
+    }),
+    []
+  );
 
-    finally {
+  // ==========================================
+  // FETCH EXPENSES
+  // ==========================================
 
-      setLoading(false);
+  const fetchExpenses =
+    useCallback(async () => {
+      if (!user) {
+        setExpenses([]);
 
-    }
-
-  }, [selectedMonth]);
-
-  // ==========================
-  // Load Expenses
-  // ==========================
-
-  useEffect(() => {
-
-      if (user) {
-
-          fetchExpenses();
-
-      } else {
-
-          setExpenses([]);
-
+        return;
       }
 
-  }, [user, selectedMonth, fetchExpenses]);
+      setLoading(true);
 
-  // ==========================
-  // Dashboard Stats
-  // ==========================
+      try {
+        const data =
+          await expenseService.list({
+            month:
+              selectedMonth,
+          });
 
-  const fetchStats = useCallback(async () => {
+        const list =
+          Array.isArray(data)
+            ? data
+            : data?.items || [];
 
-    try {
+        setExpenses(
+          list.map(
+            mapExpense
+          )
+        );
 
-      const data =
-          await dashboardService.summary(selectedMonth);
+      } catch (error) {
+        console.error(
+          "Failed to fetch expenses:",
+          error
+        );
 
-      setStats(data);
+      } finally {
+        setLoading(false);
+      }
+    }, [
+      user,
+      selectedMonth,
+      mapExpense,
+    ]);
 
+  // ==========================================
+  // LOAD / MONTH CHANGE
+  // ==========================================
+
+  useEffect(() => {
+    if (user) {
+      fetchExpenses();
+    } else {
+      setExpenses([]);
     }
-
-    catch (error) {
-
-      console.error(
-        "Failed to fetch dashboard summary:",
-        error
-      );
-
-    }
-
-  }, [selectedMonth]);
-
-  // ==========================
-  // Add Expense
-  // ==========================
-
-  const addExpense = async (payload) => {
-
-    try {
-
-      const response =
-        await expenseService.create(payload);
-
-      const expense = {
-
-        id: response.id,
-        title: response.description,
-        amount: response.amount,
-        category: response.category,
-        paymentMethod: response.paymentMode,
-        merchant: response.merchant,
-        date: response.expenseDate,
-        type: "Essential",
-
-      };
-
-      await fetchExpenses();
-
-      window.dispatchEvent(
-        new Event("dashboard-update")
-      );
-      window.dispatchEvent(
-        new Event("dashboard-update")
-      );
-
-      toast.success("Expense added");
-
-      return expense;
-
-    }
-
-    catch (error) {
-
-      console.error(error);
-
-      toast.error("Failed to add expense");
-
-    }
-
-  };
-
-  // ==========================
-  // Update Expense
-  // ==========================
-
-  const updateExpense = async (id, payload) => {
-
-    try {
-
-      const updated =
-        await expenseService.update(id, payload);
-
-      const mappedExpense = {
-
-        id: updated.id,
-        title: updated.description,
-        amount: updated.amount,
-        category: updated.category,
-        paymentMethod: updated.paymentMode,
-        merchant: updated.merchant,
-        date: updated.expenseDate,
-        type: "Essential",
-
-      };
-
-      await fetchExpenses();
-
-      toast.success("Expense updated");
-
-    }
-
-    catch (error) {
-
-      console.error(error);
-
-      toast.error("Failed to update expense");
-
-    }
-
-  };
-
-  // ==========================
-  // Delete Expense
-  // ==========================
-
-  const deleteExpense = async (id) => {
-
-    try {
-
-      await expenseService.remove(id);
-
-      await fetchExpenses();
-
-      toast.success("Expense deleted");
-
-    }
-
-    catch (error) {
-
-      console.error(error);
-
-      toast.error("Failed to delete expense");
-
-    }
-
-  };
-
-  // ==========================
-  // Filtered Expenses
-  // ==========================
-
-  const filteredExpenses = useMemo(() => {
-
-    return filterExpenses(
-
-      expenses,
-
-      searchText,
-
-      categoryFilter,
-
-      paymentFilter
-
-    );
-
   }, [
-
-    expenses,
-
-    searchText,
-
-    categoryFilter,
-
-    paymentFilter,
-
+    user,
+    fetchExpenses,
   ]);
 
-  // ==========================
-  // Provider
-  // ==========================
+  // ==========================================
+  // DASHBOARD STATS
+  // ==========================================
+
+  const fetchStats =
+    useCallback(async () => {
+      if (!user) {
+        setStats(null);
+
+        return;
+      }
+
+      try {
+        const data =
+          await dashboardService
+            .summary(
+              selectedMonth
+            );
+
+        setStats(data);
+
+      } catch (error) {
+        console.error(
+          "Failed to fetch dashboard summary:",
+          error
+        );
+      }
+    }, [
+      user,
+      selectedMonth,
+    ]);
+
+  // ==========================================
+  // ADD
+  // ==========================================
+
+  const addExpense =
+    async payload => {
+      try {
+        const response =
+          await expenseService
+            .create(payload);
+
+        await fetchExpenses();
+
+        window.dispatchEvent(
+          new Event(
+            "dashboard-update"
+          )
+        );
+
+        toast.success(
+          "Expense added"
+        );
+
+        return mapExpense(
+          response
+        );
+
+      } catch (error) {
+        console.error(
+          "Add expense error:",
+          error
+        );
+
+        toast.error(
+          "Failed to add expense"
+        );
+
+        throw error;
+      }
+    };
+
+  // ==========================================
+  // UPDATE
+  // ==========================================
+
+  const updateExpense =
+    async (
+      id,
+      payload
+    ) => {
+      try {
+        const updated =
+          await expenseService
+            .update(
+              id,
+              payload
+            );
+
+        await fetchExpenses();
+
+        window.dispatchEvent(
+          new Event(
+            "dashboard-update"
+          )
+        );
+
+        toast.success(
+          "Expense updated"
+        );
+
+        return mapExpense(
+          updated
+        );
+
+      } catch (error) {
+        console.error(
+          "Update expense error:",
+          error
+        );
+
+        toast.error(
+          "Failed to update expense"
+        );
+
+        throw error;
+      }
+    };
+
+  // ==========================================
+  // DELETE
+  // ==========================================
+
+  const deleteExpense =
+    async id => {
+      try {
+        await expenseService
+          .remove(id);
+
+        await fetchExpenses();
+
+        window.dispatchEvent(
+          new Event(
+            "dashboard-update"
+          )
+        );
+
+        toast.success(
+          "Expense deleted"
+        );
+
+      } catch (error) {
+        console.error(
+          "Delete expense error:",
+          error
+        );
+
+        toast.error(
+          "Failed to delete expense"
+        );
+
+        throw error;
+      }
+    };
+
+  // ==========================================
+  // FILTER + SEARCH
+  // ==========================================
+
+  const filteredExpenses =
+    useMemo(() => {
+      const normalizedSearch =
+        search
+          .trim()
+          .toLowerCase();
+
+      return expenses.filter(
+        expense => {
+          const matchesSearch =
+            !normalizedSearch ||
+            [
+              expense.title,
+              expense.description,
+              expense.merchant,
+              expense.category,
+              expense.paymentMethod,
+            ].some(value =>
+              String(
+                value || ""
+              )
+                .toLowerCase()
+                .includes(
+                  normalizedSearch
+                )
+            );
+
+          const matchesCategory =
+            categoryFilter ===
+              "All" ||
+            expense.category ===
+              categoryFilter;
+
+          const matchesPayment =
+            paymentFilter ===
+              "All" ||
+            expense.paymentMethod ===
+              paymentFilter;
+
+          return (
+            matchesSearch &&
+            matchesCategory &&
+            matchesPayment
+          );
+        }
+      );
+    }, [
+      expenses,
+      search,
+      categoryFilter,
+      paymentFilter,
+    ]);
+
+  // ==========================================
+  // CLEAR FILTERS
+  // ==========================================
+
+  const clearFilters = () => {
+    setSearch("");
+
+    setCategoryFilter(
+      "All"
+    );
+
+    setPaymentFilter(
+      "All"
+    );
+  };
 
   return (
-
     <ExpenseContext.Provider
-
       value={{
-
         expenses,
 
         filteredExpenses,
@@ -324,24 +440,29 @@ export function ExpenseProvider({ children }) {
 
         setPaymentFilter,
 
+        clearFilters,
+
         loading,
 
         stats,
-
       }}
-
     >
-
       {children}
-
     </ExpenseContext.Provider>
-
   );
-
 }
 
 export function useExpenses() {
+  const context =
+    useContext(
+      ExpenseContext
+    );
 
-  return useContext(ExpenseContext);
+  if (!context) {
+    throw new Error(
+      "useExpenses must be used inside ExpenseProvider"
+    );
+  }
 
+  return context;
 }

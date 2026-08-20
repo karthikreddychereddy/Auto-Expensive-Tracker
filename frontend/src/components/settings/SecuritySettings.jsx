@@ -1,5 +1,9 @@
-import { useState } from "react";
+import {
+  useState,
+} from "react";
+
 import { motion } from "framer-motion";
+
 import {
   FaLock,
   FaShieldAlt,
@@ -11,26 +15,34 @@ import {
 import ChangePasswordModal from "./ChangePasswordModal";
 
 export default function SecuritySettings() {
-  const [openModal, setOpenModal] = useState(false);
+  const [
+    openModal,
+    setOpenModal,
+  ] = useState(false);
 
   const securityItems = [
     {
       title: "Password",
-      description: "Update your account password.",
+      description:
+        "Update your account password securely.",
       icon: <FaKey />,
-      action: () => setOpenModal(true),
+      action: () =>
+        setOpenModal(true),
       button: "Change",
     },
     {
-      title: "Two-Factor Authentication",
-      description: "Protect your account with an extra security layer.",
+      title:
+        "Two-Factor Authentication",
+      description:
+        "Additional account verification for future releases.",
       icon: <FaShieldAlt />,
       button: "Coming Soon",
       disabled: true,
     },
     {
       title: "Biometric Login",
-      description: "Fingerprint and Face ID support.",
+      description:
+        "Fingerprint and Face ID support for the future mobile app.",
       icon: <FaFingerprint />,
       button: "Coming Soon",
       disabled: true,
@@ -40,15 +52,32 @@ export default function SecuritySettings() {
   return (
     <>
       <motion.div
-        initial={{ opacity: 0, y: 25 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.35 }}
-        className="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden"
+        initial={{
+          opacity: 0,
+          y: 20,
+        }}
+        animate={{
+          opacity: 1,
+          y: 0,
+        }}
+        className="
+          overflow-hidden
+          rounded-3xl
+          border
+          border-slate-200
+          bg-white
+          shadow-lg
+          dark:border-slate-700
+          dark:bg-slate-900
+        "
       >
+
         <div className="bg-gradient-to-r from-[#0B6B57] to-[#12A67D] p-6">
+
           <div className="flex items-center gap-4">
-            <div className="w-14 h-14 rounded-2xl bg-white/20 flex items-center justify-center">
-              <FaLock className="text-white text-2xl" />
+
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/20">
+              <FaLock className="text-xl text-white" />
             </div>
 
             <div>
@@ -56,84 +85,113 @@ export default function SecuritySettings() {
                 Security
               </h2>
 
-              <p className="text-white/80 mt-1">
-                Manage your account security settings.
+              <p className="mt-1 text-sm text-white/80">
+                Manage your account protection.
               </p>
             </div>
+
           </div>
+
         </div>
 
-        <div className="p-6">
+        <div className="space-y-5 p-5 sm:p-6">
 
-          <div className="rounded-2xl bg-green-50 border border-green-100 p-5 mb-6">
-            <h3 className="font-semibold text-green-700">
+          <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4 dark:border-emerald-900 dark:bg-emerald-950/20">
+
+            <h3 className="font-semibold text-emerald-700 dark:text-emerald-300">
               Security Status
             </h3>
 
-            <p className="text-green-600 mt-2">
-              Your account is currently protected.
+            <p className="mt-1 text-sm text-emerald-600 dark:text-emerald-400">
+              Email verification, password protection, JWT sessions, and refresh-token logout are enabled.
             </p>
+
           </div>
 
           <div className="space-y-4">
-            {securityItems.map((item, index) => (
-              <motion.div
-                key={index}
-                whileHover={{ scale: 1.01 }}
-                className="flex items-center justify-between rounded-2xl border border-gray-200 p-5"
+
+            {securityItems.map(item => (
+              <div
+                key={item.title}
+                className="
+                  flex
+                  flex-col
+                  gap-4
+                  rounded-2xl
+                  border
+                  border-slate-200
+                  p-4
+                  dark:border-slate-700
+                  sm:flex-row
+                  sm:items-center
+                  sm:justify-between
+                "
               >
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-xl bg-[#0B6B57]/10 text-[#0B6B57] flex items-center justify-center text-xl">
+
+                <div className="flex min-w-0 items-start gap-4">
+
+                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#0B6B57]/10 text-lg text-[#0B6B57]">
                     {item.icon}
                   </div>
 
-                  <div>
-                    <h3 className="font-semibold text-slate-800">
+                  <div className="min-w-0">
+
+                    <h3 className="font-semibold text-slate-800 dark:text-white">
                       {item.title}
                     </h3>
 
-                    <p className="text-sm text-gray-500 mt-1">
+                    <p className="mt-1 text-sm leading-6 text-slate-500 dark:text-slate-400">
                       {item.description}
                     </p>
+
                   </div>
+
                 </div>
 
                 {item.disabled ? (
-                  <span className="px-4 py-2 rounded-xl bg-gray-100 text-gray-500 text-sm font-medium">
+                  <span className="self-start whitespace-nowrap rounded-xl bg-slate-100 px-4 py-2 text-sm font-medium text-slate-500 dark:bg-slate-800 dark:text-slate-400 sm:self-auto">
                     {item.button}
                   </span>
                 ) : (
                   <button
+                    type="button"
                     onClick={item.action}
-                    className="flex items-center gap-2 px-5 py-2 rounded-xl bg-[#0B6B57] text-white hover:bg-[#095544] transition"
+                    className="flex self-start items-center gap-2 rounded-xl bg-[#0B6B57] px-5 py-2 text-white transition hover:bg-[#095544] sm:self-auto"
                   >
                     {item.button}
+
                     <FaChevronRight size={12} />
                   </button>
                 )}
-              </motion.div>
+
+              </div>
             ))}
+
           </div>
 
-          <div className="mt-6 rounded-2xl bg-blue-50 border border-blue-100 p-5">
-            <h3 className="font-semibold text-blue-700">
+          <div className="rounded-2xl border border-blue-200 bg-blue-50 p-4 dark:border-blue-900 dark:bg-blue-950/20">
+
+            <h3 className="font-semibold text-blue-700 dark:text-blue-300">
               Security Tips
             </h3>
 
-            <ul className="mt-3 space-y-2 text-sm text-blue-700">
-              <li>• Use a strong password with at least 8 characters.</li>
-              <li>• Avoid sharing your password with anyone.</li>
-              <li>• Change your password regularly.</li>
-              <li>• Enable Two-Factor Authentication when available.</li>
+            <ul className="mt-3 space-y-2 text-sm leading-6 text-blue-700 dark:text-blue-400">
+              <li>• Use a strong, unique password.</li>
+              <li>• Never share OTPs or passwords.</li>
+              <li>• Log out on shared devices.</li>
             </ul>
+
           </div>
 
         </div>
+
       </motion.div>
 
       <ChangePasswordModal
         open={openModal}
-        onClose={() => setOpenModal(false)}
+        onClose={() =>
+          setOpenModal(false)
+        }
       />
     </>
   );

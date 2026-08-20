@@ -38,14 +38,14 @@ export default function ExpenseForm({
   const formRef = useRef(null);
 
   useEffect(() => {
-    if (initial) {
+      if (!initial) return;
+
       setForm({
-        ...getEmptyForm(),
-        ...initial,
+          ...getEmptyForm(),
+          ...initial,
       });
 
       setSelectedTags(initial.tags || []);
-    }
   }, [initial]);
 
   const update = (field) => (e) =>

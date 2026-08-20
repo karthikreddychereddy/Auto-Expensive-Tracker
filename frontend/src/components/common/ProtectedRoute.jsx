@@ -1,16 +1,44 @@
-// import { Navigate, Outlet, useLocation } from 'react-router-dom';
-// import { useAuth } from '../context/AuthContext.jsx';
+import {
+  Navigate,
+  Outlet,
+  useLocation,
+} from "react-router-dom";
 
-// export default function ProtectedRoute() {
-//   const { user, loading } = useAuth();
-//   const location = useLocation();
-//   if (loading) return <div className="p-10 text-center text-slate-500">Loading…</div>;
-//   if (!user) return <Navigate to="/login" replace state={{ from: location }} />;
-//   return <Outlet />;
-// }
+import {
+  useAuth,
+} from "../../context/AuthContext";
 
-import { Outlet } from "react-router-dom";
+import PageLoader from "./PageLoader";
 
 export default function ProtectedRoute() {
-    return <Outlet />;
+  const {
+    user,
+    loading,
+  } = useAuth();
+
+  const location =
+    useLocation();
+
+  if (loading) {
+    return (
+      <PageLoader
+        fullPage
+        message="Preparing PaisaTrack..."
+      />
+    );
+  }
+
+  if (!user) {
+    return (
+      <Navigate
+        to="/login"
+        replace
+        state={{
+          from: location,
+        }}
+      />
+    );
+  }
+
+  return <Outlet />;
 }

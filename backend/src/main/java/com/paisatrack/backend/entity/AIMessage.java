@@ -19,20 +19,58 @@ public class AIMessage {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "conversation_id", nullable = false)
+    @JoinColumn(
+            name = "conversation_id",
+            nullable = false
+    )
     private AIConversation conversation;
 
     @Column(nullable = false)
     private String role;
 
-    @Column(nullable = false, columnDefinition = "LONGTEXT")
+    @Column(
+            nullable = false,
+            columnDefinition = "LONGTEXT"
+    )
     private String content;
+
+    /*
+     * ==========================================
+     * Attachment metadata
+     * ==========================================
+     *
+     * We are NOT storing the actual attachment
+     * inside MySQL.
+     *
+     * These fields allow the chat history to show
+     * which file was attached to a user message.
+     */
+
+    @Column(name = "has_attachment")
+    @Builder.Default
+    private Boolean hasAttachment = false;
+
+    @Column(name = "attachment_name")
+    private String attachmentName;
+
+    @Column(name = "attachment_type")
+    private String attachmentType;
+
+    @Column(name = "attachment_size")
+    private Long attachmentSize;
 
     private LocalDateTime createdAt;
 
     @PrePersist
     public void onCreate() {
-        createdAt = LocalDateTime.now();
-    }
 
+        if (createdAt == null) {
+            createdAt =
+                    LocalDateTime.now();
+        }
+
+        if (hasAttachment == null) {
+            hasAttachment = false;
+        }
+    }
 }

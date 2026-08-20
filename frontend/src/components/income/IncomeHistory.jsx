@@ -53,7 +53,7 @@ export default function IncomeHistory() {
 
     <>
 
-      <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-6">
+      <div className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-800 sm:rounded-3xl sm:p-6">
 
         <div className="flex justify-between items-center mb-6">
 
@@ -83,7 +83,7 @@ export default function IncomeHistory() {
 
               key={item.id}
 
-              className="flex justify-between items-center border rounded-2xl p-4 hover:bg-gray-50 transition"
+              className="flex flex-col gap-4 rounded-2xl border border-gray-200 p-4 transition hover:bg-gray-50 dark:border-slate-700 dark:hover:bg-slate-900/50 sm:flex-row sm:items-center sm:justify-between"
 
             >
 
@@ -103,7 +103,7 @@ export default function IncomeHistory() {
 
               </div>
 
-              <div className="flex items-center gap-6">
+              <div className="flex flex-wrap items-center gap-4 sm:gap-6">
 
                 <span className="text-xl font-bold text-green-600">
 

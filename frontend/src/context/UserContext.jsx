@@ -1,166 +1,94 @@
 import {
   createContext,
+  useCallback,
   useContext,
   useEffect,
   useState,
 } from "react";
 
 import api from "../services/api";
-
+import { useAuth } from "./AuthContext";
 
 const UserContext = createContext(null);
 
-
-
 export function UserProvider({ children }) {
+  const { user } = useAuth();
 
+  const [profile, setProfile] = useState(null);
+  const [loading, setLoading] = useState(false);
 
-  const [profile, setProfile] =
-    useState(null);
-
-
-  const [loading, setLoading] =
-    useState(true);
-
-
-
-  const loadProfile = async () => {
-
-
-    try {
-
-
-      const response =
-        await api.get("/user/profile");
-
-
-      setProfile(response.data);
-
-
-    }
-    catch(error){
-
-
-      console.error(
-        "Failed to load profile",
-        error
-      );
-
-
-    }
-    finally{
-
-
+  const loadProfile = useCallback(async () => {
+    if (!user) {
+      setProfile(null);
       setLoading(false);
-
-
+      return null;
     }
 
-
-  };
-
-
-
-
-
-  const updateProfile = async (payload) => {
-
-
     try {
+      setLoading(true);
 
-
-      const response =
-        await api.put(
-          "/user/profile",
-          payload
-        );
-
+      const response = await api.get("/user/profile");
 
       setProfile(response.data);
-
 
       return response.data;
-
-
+    } catch (error) {
+      console.error("Failed to load profile", error);
+      setProfile(null);
+      return null;
+    } finally {
+      setLoading(false);
     }
-    catch(error){
+  }, [user]);
 
-
-      console.error(
-        "Profile update failed",
-        error
-      );
-
-
+  const updateProfile = async payload => {
+    try {
+      const response = await api.put("/user/profile", payload);
+      setProfile(response.data);
+      return response.data;
+    } catch (error) {
+      console.error("Profile update failed", error);
       throw error;
-
-
     }
-
-
   };
-
-
-
-
 
   const clearProfile = () => {
-
-
     setProfile(null);
-
-
   };
 
+  useEffect(() => {
+    if (!user) {
+      setProfile(null);
+      setLoading(false);
+      return;
+    }
 
-
-
-
-  useEffect(()=>{
-
-
+    setProfile(null);
     loadProfile();
-
-
-  },[]);
-
-
-
-
+  }, [user, loadProfile]);
 
   return (
-
     <UserContext.Provider
-
       value={{
-
         profile,
-
         loading,
-
         setProfile,
-
         loadProfile,
-
         updateProfile,
-
         clearProfile,
-
       }}
-
     >
-
       {children}
-
-
     </UserContext.Provider>
-
   );
-
-
 }
 
+export const useUser = () => {
+  const context = useContext(UserContext);
 
+  if (!context) {
+    throw new Error("useUser must be used within UserProvider");
+  }
 
-export const useUser = () =>
-  useContext(UserContext);
+  return context;
+};

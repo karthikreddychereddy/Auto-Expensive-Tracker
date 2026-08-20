@@ -5,49 +5,84 @@ import BudgetPreferences from "../components/settings/BudgetPreferences";
 import CurrencySettings from "../components/settings/CurrencySettings";
 import SecuritySettings from "../components/settings/SecuritySettings";
 import ReceiptScannerSettings from "../components/settings/ReceiptScannerSettings";
-import SMSImportSettings from "../components/settings/SMSImportSettings";
-import BackupSettings from "../components/settings/BackupSettings";
 import AboutSettings from "../components/settings/AboutSettings";
 
-function Section({ title, children }) {
+import PageTransition from "../components/animations/PageTransition";
+import FadeCard from "../components/animations/FadeCard";
+
+function Section({
+  title,
+  description,
+  children,
+}) {
   return (
-    <section className="space-y-6">
+    <section className="space-y-5">
+
       <div>
-        <h2 className="text-2xl font-bold text-slate-800">
+        <h2 className="text-2xl font-bold text-slate-800 dark:text-white">
           {title}
         </h2>
-        <div className="mt-3 h-px bg-gray-200" />
+
+        {description && (
+          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+            {description}
+          </p>
+        )}
+
+        <div className="mt-4 h-px bg-slate-200 dark:bg-slate-700" />
       </div>
 
-      <div className="grid xl:grid-cols-2 gap-6">
+      <div className="grid gap-6 xl:grid-cols-2">
         {children}
       </div>
+
     </section>
   );
 }
 
 export default function Settings() {
   return (
-    <div className="space-y-10">
-      <SettingsHeader />
+    <PageTransition>
 
-      <Section title="Account">
-        <SecuritySettings />
-        <CurrencySettings />
-      </Section>
+      <div className="mx-auto w-full max-w-[1500px] space-y-10">
 
-      <Section title="Finance">
-        <BudgetPreferences />
-        <SMSImportSettings />
-        <ReceiptScannerSettings />
-        <NotificationSettings />
-      </Section>
-      <AIPreferences />
+        <SettingsHeader />
 
-      <Section title="System">
-        <BackupSettings />
-        <AboutSettings />
-      </Section>
-    </div>
+        <FadeCard delay={0.05}>
+          <Section
+            title="Account & Security"
+            description="Manage account protection and your preferred currency."
+          >
+            <SecuritySettings />
+            <CurrencySettings />
+          </Section>
+        </FadeCard>
+
+        <FadeCard delay={0.10}>
+          <Section
+            title="Finance Preferences"
+            description="Control budget alerts, receipt scanning, notifications, and AI behavior."
+          >
+            <BudgetPreferences />
+            <ReceiptScannerSettings />
+            <NotificationSettings />
+            <AIPreferences />
+          </Section>
+        </FadeCard>
+
+        <FadeCard delay={0.15}>
+          <Section
+            title="About"
+            description="Application information and current PaisaTrack details."
+          >
+            <div className="xl:col-span-2">
+              <AboutSettings />
+            </div>
+          </Section>
+        </FadeCard>
+
+      </div>
+
+    </PageTransition>
   );
 }

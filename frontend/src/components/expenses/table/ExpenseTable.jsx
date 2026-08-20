@@ -27,9 +27,9 @@ export default function ExpenseTable({ onEdit }) {
 
   return (
     <>
-      <div className="bg-white rounded-2xl shadow overflow-hidden">
+      <div className="overflow-x-auto rounded-2xl border border-gray-100 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-800">
 
-        <table className="w-full">
+        <table className="min-w-[900px] w-full">
 
           <thead className="bg-gray-100">
 

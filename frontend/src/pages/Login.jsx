@@ -1,11 +1,15 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
-import toast from "react-hot-toast";
 
 import {
-  FcGoogle
-} from "react-icons/fc";
+  Link,
+  useNavigate,
+} from "react-router-dom";
+
+import { useAuth } from "../context/AuthContext";
+
+import toast from "react-hot-toast";
+
+import { FcGoogle } from "react-icons/fc";
 
 import {
   FaGithub,
@@ -13,305 +17,314 @@ import {
   FaApple,
   FaWallet,
   FaEnvelope,
-  FaLock
+  FaLock,
 } from "react-icons/fa";
 
 export default function Login() {
-
   const { login } = useAuth();
-  const navigate = useNavigate();
 
-  const [form, setForm] = useState({
-    email: "",
-    password: ""
-  });
+  const navigate =
+    useNavigate();
 
-  const [busy, setBusy] = useState(false);
+  const [form, setForm] =
+    useState({
+      email: "",
+      password: "",
+    });
 
-  const submit = async (e) => {
+  const [busy, setBusy] =
+    useState(false);
 
-    e.preventDefault();
+  const submit = async event => {
+    event.preventDefault();
+
+    if (busy) {
+      return;
+    }
 
     setBusy(true);
 
     try {
-
-      await login(form.email, form.password);
-
-      toast.success("Welcome Back!");
-
-      navigate("/dashboard");
-
-    } catch (err) {
-
-      toast.error(
-        err?.response?.data?.message || "Login Failed"
+      await login(
+        form.email.trim(),
+        form.password
       );
 
+      toast.success(
+        "Welcome back!"
+      );
+
+      navigate(
+        "/dashboard",
+        {
+          replace: true,
+        }
+      );
+    } catch (error) {
+      toast.error(
+        error?.response?.data?.message ||
+          error?.response?.data?.error ||
+          error?.message ||
+          "Login failed."
+      );
     } finally {
-
       setBusy(false);
-
     }
+  };
 
+  const handleGoogleLogin = () => {
+    const backendBaseUrl =
+      import.meta.env.VITE_BACKEND_BASE_URL ||
+      "http://localhost:8080";
+
+    window.location.href =
+      `${backendBaseUrl}/oauth2/authorization/google`;
   };
 
   return (
-
-    <div className="min-h-screen grid lg:grid-cols-2">
+    <div className="grid h-screen overflow-hidden bg-[#FBF7EB] lg:grid-cols-2">
 
       {/* LEFT */}
 
-      <div className="hidden lg:flex flex-col justify-between bg-[#0B6B57] text-white p-14">
+      <div className="hidden h-screen flex-col justify-between bg-[#0B6B57] p-10 text-white lg:flex xl:p-12">
 
-        <div>
+        <div className="flex items-center gap-3">
 
-          <div className="flex items-center gap-3">
+          <FaWallet className="text-3xl" />
 
-            <FaWallet className="text-3xl"/>
-
-            <h1 className="text-4xl font-bold">
-
-              PaisaTrack
-
-            </h1>
-
-          </div>
+          <h1 className="text-3xl font-bold">
+            PaisaTrack
+          </h1>
 
         </div>
 
         <div>
 
-          <h2 className="text-6xl font-bold leading-tight">
-
+          <h2 className="text-4xl font-bold leading-tight xl:text-5xl">
             Auto-track every rupee.
-
           </h2>
 
-          <h2 className="text-6xl font-bold mb-8">
-
+          <h2 className="mt-2 text-4xl font-bold leading-tight xl:text-5xl">
             Without the spreadsheet.
-
           </h2>
 
-          <p className="text-xl text-green-100">
-
-            Automatically detect payment
-            messages, AI categorization,
-            OCR receipt scanning and
-            budgeting in one place.
-
+          <p className="mt-6 max-w-xl text-base leading-7 text-green-100 xl:text-lg">
+            Track expenses, scan receipts,
+            manage budgets and understand
+            your finances with intelligent
+            guidance.
           </p>
 
         </div>
 
-        <div className="text-green-200">
-
-            🇮🇳 Built for Indian Users
-
+        <div className="text-sm text-green-200">
+          🇮🇳 Built for Indian Users
         </div>
 
       </div>
 
       {/* RIGHT */}
 
-      <div className="bg-[#FBF7EB] flex justify-center items-center p-8">
+      <div className="flex h-screen items-center justify-center bg-[#FBF7EB] px-4 py-4 sm:px-6">
 
         <form
           onSubmit={submit}
-          className="bg-white w-full max-w-lg rounded-3xl shadow-xl p-10"
+          className="w-full max-w-md rounded-3xl bg-white p-6 shadow-xl sm:p-7"
         >
 
-          <h1 className="text-5xl font-bold">
+          <div className="mb-5 flex items-center gap-3 lg:hidden">
 
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#0B6B57] text-white">
+              <FaWallet />
+            </div>
+
+            <h2 className="text-xl font-bold text-[#0B6B57]">
+              PaisaTrack
+            </h2>
+
+          </div>
+
+          <h1 className="text-3xl font-bold text-slate-900 sm:text-4xl">
             Welcome Back
-
           </h1>
 
-          <p className="text-gray-500 mt-2 mb-8">
-
-            Sign in to continue tracking your expenses.
-
+          <p className="mb-5 mt-1 text-sm text-gray-500">
+            Sign in to continue tracking
+            your finances.
           </p>
 
-          {/* EMAIL */}
-
-          <label className="font-semibold">
-
+          <label className="text-sm font-semibold text-slate-800">
             Email
-
           </label>
 
-          <div className="flex items-center border rounded-xl px-4 mt-2 mb-5">
+          <div className="mb-4 mt-1.5 flex items-center rounded-xl border border-slate-200 px-3 transition focus-within:border-[#0B6B57]">
 
-            <FaEnvelope className="text-gray-400"/>
+            <FaEnvelope className="shrink-0 text-sm text-gray-400" />
 
             <input
               type="email"
-              className="w-full p-3 outline-none"
+              autoComplete="email"
+              className="w-full bg-transparent px-3 py-2.5 text-slate-800 outline-none focus:outline-none focus-visible:outline-none dark:text-white"
               placeholder="you@example.com"
               value={form.email}
-              onChange={(e)=>
-                setForm({
-                  ...form,
-                  email:e.target.value
-                })
+              onChange={event =>
+                setForm(prev => ({
+                  ...prev,
+                  email:
+                    event.target.value,
+                }))
               }
               required
             />
 
           </div>
 
-          {/* PASSWORD */}
-
-          <label className="font-semibold">
-
+          <label className="text-sm font-semibold text-slate-800">
             Password
-
           </label>
 
-          <div className="flex items-center border rounded-xl px-4 mt-2">
+          <div className="mt-1.5 flex items-center rounded-xl border border-slate-200 px-3 transition focus-within:border-[#0B6B57]">
 
-            <FaLock className="text-gray-400"/>
+            <FaLock className="shrink-0 text-sm text-gray-400" />
 
             <input
               type="password"
-              className="w-full p-3 outline-none"
+              autoComplete="current-password"
+              className="w-full bg-transparent px-3 py-2.5 text-slate-800 outline-none focus:outline-none focus-visible:outline-none dark:text-white"
               placeholder="********"
               value={form.password}
-              onChange={(e)=>
-                setForm({
-                  ...form,
-                  password:e.target.value
-                })
+              onChange={event =>
+                setForm(prev => ({
+                  ...prev,
+                  password:
+                    event.target.value,
+                }))
               }
               required
             />
 
           </div>
 
-          <div className="flex justify-end mt-3">
+          <div className="mt-2 flex justify-end">
 
             <Link
               to="/forgot-password"
-              className="text-[#0B6B57] font-semibold"
+              className="text-sm font-semibold text-[#0B6B57] hover:underline"
             >
-
               Forgot Password?
-
             </Link>
 
           </div>
 
-          {/* LOGIN */}
-
           <button
+            type="submit"
             disabled={busy}
-            className="w-full bg-[#0B6B57] text-white py-4 rounded-xl text-lg font-semibold mt-8 hover:bg-[#095544] transition"
+            className="mt-5 w-full rounded-xl bg-[#0B6B57] py-3 font-semibold text-white transition hover:bg-[#095544] disabled:cursor-not-allowed disabled:opacity-60"
           >
-
-            {
-
-              busy ?
-
-              "Signing In..."
-
-              :
-
-              "Sign In"
-
-            }
-          
-
+            {busy
+              ? "Signing In..."
+              : "Sign In"}
           </button>
-          
 
-          <p className="text-center mt-8">
-
+          <p className="mt-4 text-center text-sm text-slate-600">
             New here?
 
             <Link
               to="/register"
-              className="text-[#0B6B57] font-bold ml-2"
+              className="ml-2 font-bold text-[#0B6B57] hover:underline"
             >
-
               Create Account
-
             </Link>
-
           </p>
 
-          <div className="flex items-center gap-3 my-8">
+          <div className="my-4 flex items-center gap-3">
 
-            <hr className="flex-1"/>
+            <hr className="flex-1 border-slate-200" />
 
-            <span className="text-gray-400">
-
+            <span className="text-xs text-gray-400">
               OR
-
             </span>
 
-            <hr className="flex-1"/>
+            <hr className="flex-1 border-slate-200" />
 
           </div>
-          {/* GOOGLE */}
 
-          <button
-            type="button"
-            className="w-full border rounded-xl py-3 flex items-center justify-center gap-3 hover:bg-gray-50 transition"
-          >
+          {/* SOCIAL ICONS */}
 
-            <FcGoogle size={28}/>
+          <div className="flex items-center justify-center gap-4">
 
-            Continue with Google
+            <SocialIconButton
+              title="Continue with Google"
+              onClick={handleGoogleLogin}
+            >
+              <FcGoogle size={26} />
+            </SocialIconButton>
 
-          </button>
+            <SocialIconButton
+              title="GitHub sign-in coming soon"
+              disabled
+            >
+              <FaGithub size={23} />
+            </SocialIconButton>
 
-          {/* GITHUB */}
+            <SocialIconButton
+              title="Microsoft sign-in coming soon"
+              disabled
+            >
+              <FaMicrosoft size={23} />
+            </SocialIconButton>
 
-          <button
-            type="button"
-            className="w-full border rounded-xl py-3 flex items-center justify-center gap-3 mt-4 hover:bg-gray-50 transition"
-          >
+            <SocialIconButton
+              title="Apple sign-in coming soon"
+              disabled
+            >
+              <FaApple size={25} />
+            </SocialIconButton>
 
-            <FaGithub size={24}/>
+          </div>
 
-            Continue with GitHub
-
-          </button>
-
-          {/* MICROSOFT */}
-
-          <button
-            type="button"
-            className="w-full border rounded-xl py-3 flex items-center justify-center gap-3 mt-4 hover:bg-gray-50 transition"
-          >
-
-            <FaMicrosoft size={24}/>
-
-            Continue with Microsoft
-
-          </button>
-
-          {/* APPLE */}
-
-          <button
-            type="button"
-            className="w-full border rounded-xl py-3 flex items-center justify-center gap-3 mt-4 hover:bg-gray-50 transition"
-          >
-
-            <FaApple size={24}/>
-
-            Continue with Apple
-
-          </button>
+          <p className="mt-3 text-center text-[11px] text-slate-400">
+            Google sign-in is available.
+            Other providers are coming soon.
+          </p>
 
         </form>
 
       </div>
 
     </div>
-
   );
+}
 
+function SocialIconButton({
+  children,
+  title,
+  onClick,
+  disabled = false,
+}) {
+  return (
+    <button
+      type="button"
+      title={title}
+      disabled={disabled}
+      onClick={onClick}
+      className={`
+        flex
+        h-12
+        w-12
+        items-center
+        justify-center
+        rounded-xl
+        border
+        transition
+        ${
+          disabled
+            ? "cursor-not-allowed border-slate-200 bg-slate-50 text-slate-400 opacity-60"
+            : "border-slate-200 bg-white hover:-translate-y-0.5 hover:border-[#0B6B57]/40 hover:shadow-md"
+        }
+      `}
+    >
+      {children}
+    </button>
+  );
 }

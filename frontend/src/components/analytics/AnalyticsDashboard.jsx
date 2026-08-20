@@ -5,93 +5,45 @@ import TopExpensesTable from "./TopExpensesTable";
 import AIInsightsCard from "./AIInsightsCard";
 import AnalyticsSummaryCards from "./AnalyticsSummaryCards";
 import PaymentMethodChart from "./PaymentMethodChart";
-
 import ExportReport from "./ExportReport";
 
 export default function AnalyticsDashboard() {
-
   return (
-
-    <div className="space-y-8">
-
-      {/* ================= Header ================= */}
-
-      <div className="bg-white rounded-2xl shadow border p-8">
-
-        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-
-          {/* Left */}
-
-          <div className="flex-1">
-
-            <h1 className="text-4xl font-bold text-slate-800">
-
+    <div className="w-full min-w-0 space-y-5 sm:space-y-6 lg:space-y-8">
+      <section className="min-w-0 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-800 sm:rounded-3xl sm:p-6 lg:p-8">
+        <div className="flex min-w-0 flex-col gap-4 sm:gap-6 lg:flex-row lg:items-center lg:justify-between">
+          <div className="min-w-0 flex-1">
+            <h1 className="break-words text-2xl font-bold text-slate-800 dark:text-white sm:text-3xl lg:text-4xl">
               Financial Insights
-
             </h1>
-
-            <p className="text-gray-500 mt-2 max-w-2xl">
-
+            <p className="mt-2 max-w-2xl break-words text-sm leading-6 text-slate-500 dark:text-slate-400 sm:text-base">
               Monitor spending patterns, discover AI-powered insights and download
               monthly financial reports.
-
             </p>
-
           </div>
 
-          {/* Right */}
-
-          <div className="flex items-center gap-4 shrink-0">
-
+          <div className="w-full shrink-0 sm:w-auto">
             <ExportReport />
-
           </div>
-
         </div>
+      </section>
 
-      </div>
-
-      {/* ================= Export Content ================= */}
-
-      <div
-        id="analytics-dashboard"
-        className="space-y-8"
-      >
-
-        {/* Summary */}
-
+      <div id="analytics-dashboard" className="w-full min-w-0 space-y-5 sm:space-y-6 lg:space-y-8">
         <AnalyticsSummaryCards />
-
-        {/* AI Insights */}
-
         <AIInsightsCard />
 
-        {/* Charts */}
-
-        <div className="grid xl:grid-cols-2 gap-8">
-
-          <CategoryBarChart />
-
-          <ExpensePieChart />
-
+        <div className="grid min-w-0 grid-cols-1 gap-4 sm:gap-6 xl:grid-cols-2">
+          <div className="min-w-0"><CategoryBarChart /></div>
+          <div className="min-w-0"><ExpensePieChart /></div>
         </div>
 
-        <div className="grid xl:grid-cols-2 gap-8">
-
-          <MonthlyTrendChart />
-
-          <PaymentMethodChart />
-
+        <div className="grid min-w-0 grid-cols-1 gap-4 sm:gap-6 xl:grid-cols-2">
+          <div className="min-w-0"><MonthlyTrendChart /></div>
+          <div className="min-w-0"><PaymentMethodChart /></div>
         </div>
-
-        {/* Table */}
 
         <TopExpensesTable />
-
       </div>
-
     </div>
-
   );
-
 }

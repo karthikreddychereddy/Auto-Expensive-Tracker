@@ -1,5 +1,6 @@
 import {
   createContext,
+  useCallback,
   useContext,
   useEffect,
   useMemo,
@@ -8,472 +9,540 @@ import {
 
 import toast from "react-hot-toast";
 
-import { savingsService } from "../services/savingsService";
-import { useAuth } from "./AuthContext";
+import {
+  savingsService,
+} from "../services/savingsService";
 
+import {
+  useAuth,
+} from "./AuthContext";
 
-const SavingsContext = createContext(null);
+import {
+  useMonth,
+} from "./MonthContext";
 
+const SavingsContext =
+  createContext(null);
 
-export function SavingsProvider({ children }) {
+export function SavingsProvider({
+  children,
+}) {
+  const {
+    user,
+  } = useAuth();
 
+  const {
+    selectedMonth,
+  } = useMonth();
 
-  const { user } = useAuth();
+  const [
+    savings,
+    setSavings,
+  ] = useState([]);
 
+  const [
+    loading,
+    setLoading,
+  ] = useState(false);
 
-  const [savings, setSavings] = useState([]);
+  const [
+    error,
+    setError,
+  ] = useState(null);
 
-  const [loading, setLoading] = useState(true);
+  const [
+    search,
+    setSearch,
+  ] = useState("");
 
+  const [
+    dateFilter,
+    setDateFilter,
+  ] = useState("All");
 
+  // ==========================================
+  // FETCH SAVINGS FOR SELECTED MONTH
+  // ==========================================
 
-  // ==========================
-  // Search & Filters
-  // ==========================
+  const fetchSavings =
+    useCallback(async () => {
+      if (!user) {
+        setSavings([]);
+        setLoading(false);
+        setError(null);
 
-  const [search, setSearch] = useState("");
+        return;
+      }
 
-  const [dateFilter, setDateFilter] =
-    useState("All");
+      try {
+        setLoading(true);
+        setError(null);
 
+        const data =
+          await savingsService.list(
+            selectedMonth
+          );
 
-  // Temporary compatibility
+        setSavings(
+          Array.isArray(data)
+            ? data
+            : []
+        );
 
-  const [goalFilter] = useState("All");
+      } catch (err) {
+        console.error(
+          "Failed to load savings:",
+          err
+        );
 
-  const setGoalFilter = () => {};
+        setSavings([]);
 
+        setError(
+          err?.response?.data?.message ||
+            "Failed to load savings."
+        );
 
+        toast.error(
+          "Failed to load savings"
+        );
 
-  // ==========================
-  // Fetch Savings
-  // ==========================
+      } finally {
+        setLoading(false);
+      }
+    }, [
+      user,
+      selectedMonth,
+    ]);
 
-
-  const fetchSavings = async () => {
-
-
-    if (!user) {
-
-      setSavings([]);
-
-      return;
-
-    }
-
-
-    try {
-
-
-      setLoading(true);
-
-
-      const data =
-        await savingsService.list();
-
-
-      setSavings(data);
-
-
-    } catch(error) {
-
-
-      console.error(error);
-
-
-      toast.error(
-        "Failed to load savings"
-      );
-
-
-    } finally {
-
-
-      setLoading(false);
-
-
-    }
-
-
-  };
-
-
-
-
-  // Reload on user change
+  // ==========================================
+  // LOAD / MONTH CHANGE
+  // ==========================================
 
   useEffect(() => {
+    fetchSavings();
+  }, [fetchSavings]);
 
+  // ==========================================
+  // ADD
+  // ==========================================
 
-    if(user){
+  const addSaving =
+    async payload => {
+      try {
+        await savingsService.create(
+          payload
+        );
 
-      fetchSavings();
+        toast.success(
+          "Saving Added"
+        );
 
-    }
-    else{
+        await fetchSavings();
 
-      setSavings([]);
+        window.dispatchEvent(
+          new Event(
+            "dashboard-update"
+          )
+        );
 
-    }
+      } catch (err) {
+        console.error(
+          "Add saving error:",
+          err
+        );
 
+        toast.error(
+          "Failed to add saving"
+        );
 
-  }, [user]);
+        throw err;
+      }
+    };
 
+  // ==========================================
+  // UPDATE
+  // ==========================================
 
-
-
-
-  // ==========================
-  // CRUD
-  // ==========================
-
-
-  const addSaving = async (payload) => {
-
-
-    try {
-
-
-      const created =
-        await savingsService.create(payload);
-
-
-
-      setSavings(prev => [
-
-        created,
-
-        ...prev,
-
-      ]);
-
-
-
-      toast.success(
-        "Saving Added"
-      );
-
-
-
-      window.dispatchEvent(
-        new Event("dashboard-update")
-      );
-
-
-    } catch(error) {
-
-
-      console.error(error);
-
-
-      toast.error(
-        "Failed to add saving"
-      );
-
-
-    }
-
-
-  };
-
-
-
-
-
-  const updateSaving = async (id, payload) => {
-
-
-    try {
-
-
-      const updated =
+  const updateSaving =
+    async (
+      id,
+      payload
+    ) => {
+      try {
         await savingsService.update(
           id,
           payload
         );
 
+        toast.success(
+          "Saving Updated"
+        );
 
+        await fetchSavings();
 
-      setSavings(prev =>
+        window.dispatchEvent(
+          new Event(
+            "dashboard-update"
+          )
+        );
 
-        prev.map(item =>
+      } catch (err) {
+        console.error(
+          "Update saving error:",
+          err
+        );
 
-          item.id === id
+        toast.error(
+          "Failed to update saving"
+        );
 
-          ? updated
+        throw err;
+      }
+    };
 
-          : item
+  // ==========================================
+  // DELETE
+  // ==========================================
 
-        )
+  const deleteSaving =
+    async id => {
+      try {
+        await savingsService.remove(
+          id
+        );
 
+        toast.success(
+          "Saving Deleted"
+        );
+
+        await fetchSavings();
+
+        window.dispatchEvent(
+          new Event(
+            "dashboard-update"
+          )
+        );
+
+      } catch (err) {
+        console.error(
+          "Delete saving error:",
+          err
+        );
+
+        toast.error(
+          "Failed to delete saving"
+        );
+
+        throw err;
+      }
+    };
+
+  // ==========================================
+  // TOTAL FOR SELECTED MONTH
+  // ==========================================
+
+  const totalSavings =
+    useMemo(() => {
+      return savings.reduce(
+        (sum, item) =>
+          sum +
+          Number(
+            item.amount || 0
+          ),
+        0
       );
+    }, [savings]);
 
+  // ==========================================
+  // DATE HELPERS
+  // ==========================================
 
-
-      toast.success(
-        "Saving Updated"
-      );
-
-
-
-      window.dispatchEvent(
-        new Event("dashboard-update")
-      );
-
-
-    } catch(error) {
-
-
-      console.error(error);
-
-
-      toast.error(
-        "Failed to update saving"
-      );
-
-
+  function parseSavingDate(
+    date
+  ) {
+    if (!date) {
+      return null;
     }
 
+    const value =
+      new Date(
+        `${date}T00:00:00`
+      );
 
+    return Number.isNaN(
+      value.getTime()
+    )
+      ? null
+      : value;
+  }
+
+  // ==========================================
+  // FILTERED SAVINGS
+  // ==========================================
+
+  const filteredSavings =
+    useMemo(() => {
+      const normalizedSearch =
+        search
+          .trim()
+          .toLowerCase();
+
+      const today =
+        new Date();
+
+      today.setHours(
+        0,
+        0,
+        0,
+        0
+      );
+
+      const startOfWeek =
+        new Date(today);
+
+      const day =
+        startOfWeek.getDay();
+
+      const difference =
+        day === 0
+          ? -6
+          : 1 - day;
+
+      startOfWeek.setDate(
+        startOfWeek.getDate() +
+          difference
+      );
+
+      startOfWeek.setHours(
+        0,
+        0,
+        0,
+        0
+      );
+
+      const endOfWeek =
+        new Date(
+          startOfWeek
+        );
+
+      endOfWeek.setDate(
+        startOfWeek.getDate() +
+          6
+      );
+
+      endOfWeek.setHours(
+        23,
+        59,
+        59,
+        999
+      );
+
+      return savings
+        .filter(item => {
+          // ====================================
+          // SEARCH
+          // ====================================
+
+          const matchesSearch =
+            !normalizedSearch ||
+            [
+              item.source,
+              item.description,
+              item.amount,
+              item.savingDate,
+            ].some(value =>
+              String(
+                value || ""
+              )
+                .toLowerCase()
+                .includes(
+                  normalizedSearch
+                )
+            );
+
+          // ====================================
+          // DATE
+          // ====================================
+
+          let matchesDate =
+            true;
+
+          const itemDate =
+            parseSavingDate(
+              item.savingDate
+            );
+
+          if (
+            dateFilter ===
+            "Today"
+          ) {
+            matchesDate =
+              itemDate
+                ? itemDate.getTime() ===
+                  today.getTime()
+                : false;
+
+          } else if (
+            dateFilter ===
+            "This Week"
+          ) {
+            matchesDate =
+              itemDate
+                ? itemDate >=
+                    startOfWeek &&
+                  itemDate <=
+                    endOfWeek
+                : false;
+
+          } else if (
+            dateFilter ===
+            "This Month"
+          ) {
+            /*
+             * savings already contains only
+             * the selected navbar month.
+             */
+            matchesDate =
+              true;
+          }
+
+          return (
+            matchesSearch &&
+            matchesDate
+          );
+        })
+        .sort(
+          (a, b) =>
+            new Date(
+              b.savingDate
+            ) -
+            new Date(
+              a.savingDate
+            )
+        );
+
+    }, [
+      savings,
+      search,
+      dateFilter,
+    ]);
+
+  // ==========================================
+  // CLEAR FILTERS
+  // ==========================================
+
+  const clearFilters = () => {
+    setSearch("");
+    setDateFilter("All");
   };
 
+  // ==========================================
+  // SUMMARY VALUES
+  // ==========================================
 
+  const largestSaving =
+    useMemo(() => {
+      if (
+        savings.length === 0
+      ) {
+        return 0;
+      }
 
-
-
-  const deleteSaving = async (id) => {
-
-
-    try {
-
-
-      await savingsService.remove(id);
-
-
-
-      setSavings(prev =>
-
-        prev.filter(item =>
-
-          item.id !== id
-
+      return Math.max(
+        ...savings.map(
+          item =>
+            Number(
+              item.amount || 0
+            )
         )
-
       );
-
-
-
-      toast.success(
-        "Saving Deleted"
-      );
-
-
-
-      window.dispatchEvent(
-        new Event("dashboard-update")
-      );
-
-
-    } catch(error) {
-
-
-      console.error(error);
-
-
-      toast.error(
-        "Failed to delete saving"
-      );
-
-
-    }
-
-
-  };
-
-
-
-
-
-  // ==========================
-  // Totals
-  // ==========================
-
-
-  const totalSavings = useMemo(() => {
-
-
-    return savings.reduce(
-
-      (sum,item) =>
-
-        sum + Number(item.amount || 0),
-
-      0
-
-    );
-
-
-  },[savings]);
-
-
-
-  const totalTarget = totalSavings;
-
-  const remainingSavings = 0;
-
-  const overallProgress = 100;
-
-
-
-
-
-  // ==========================
-  // Filters
-  // ==========================
-
-
-  const filteredSavings = useMemo(() => {
-
-
-    return savings.filter(item => {
-
-
-      const matchesSearch =
-
-        item.source
-          ?.toLowerCase()
-          .includes(search.toLowerCase())
-
-        ||
-
-        item.description
-          ?.toLowerCase()
-          .includes(search.toLowerCase());
-
-
-
-      let matchesDate = true;
-
-
-
-      const today = new Date();
-
-      const itemDate =
-        new Date(item.savingDate);
-
-
-
-      if(dateFilter === "Today") {
-
-
-        matchesDate =
-          item.savingDate ===
-          today.toISOString()
-          .slice(0,10);
-
-
+    }, [savings]);
+
+  const averageSaving =
+    useMemo(() => {
+      if (
+        savings.length === 0
+      ) {
+        return 0;
       }
 
-
-      else if(dateFilter === "This Month") {
-
-
-        matchesDate =
-
-          itemDate.getMonth()
-          ===
-          today.getMonth()
-
-          &&
-
-          itemDate.getFullYear()
-          ===
-          today.getFullYear();
-
-
-      }
-
-
-
-      return matchesSearch && matchesDate;
-
-
-    });
-
-
-  },[
-    savings,
-    search,
-    dateFilter
-  ]);
-
-
-
-
+      return (
+        totalSavings /
+        savings.length
+      );
+    }, [
+      savings,
+      totalSavings,
+    ]);
 
   return (
-
     <SavingsContext.Provider
-
       value={{
-
         loading,
+        error,
 
         savings,
-
         filteredSavings,
 
+        selectedMonth,
 
         fetchSavings,
 
-
         addSaving,
-
         updateSaving,
-
         deleteSaving,
 
-
         totalSavings,
-
+        averageSaving,
+        largestSaving,
 
         search,
-
         setSearch,
 
-
         dateFilter,
-
         setDateFilter,
 
+        clearFilters,
 
-        goalFilter,
+        /*
+         * Compatibility with existing
+         * components.
+         */
+        goalFilter:
+          "All",
 
-        setGoalFilter,
+        setGoalFilter:
+          () => {},
 
+        totalTarget:
+          totalSavings,
 
-        totalTarget,
+        remainingSavings:
+          0,
 
-        remainingSavings,
-
-        overallProgress,
-
-
+        overallProgress:
+          savings.length > 0
+            ? 100
+            : 0,
       }}
-
     >
-
       {children}
-
-
     </SavingsContext.Provider>
-
   );
-
-
 }
 
+export const useSavings =
+  () => {
+    const context =
+      useContext(
+        SavingsContext
+      );
 
+    if (!context) {
+      throw new Error(
+        "useSavings must be used inside SavingsProvider"
+      );
+    }
 
-export const useSavings = () =>
-  useContext(SavingsContext);
+    return context;
+  };

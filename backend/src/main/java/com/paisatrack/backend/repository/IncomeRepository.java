@@ -2,6 +2,7 @@ package com.paisatrack.backend.repository;
 
 import com.paisatrack.backend.entity.Income;
 import com.paisatrack.backend.entity.User;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -17,48 +18,61 @@ public interface IncomeRepository extends JpaRepository<Income, Long> {
     // Basic Queries
     // =====================================================
 
-        long countByUser(User user);
+    long countByUser(User user);
 
-        List<Income> findByUser(User user);
+    List<Income> findByUser(User user);
 
-        List<Income> findByUserAndCategory(
-                User user,
-                String category
-        );
+    List<Income> findByUserAndCategory(
+            User user,
+            String category
+    );
 
-        List<Income> findByUserAndIncomeDateBetween(
-                User user,
-                LocalDate startDate,
-                LocalDate endDate
-        );
+    List<Income> findByUserAndIncomeDateBetween(
+            User user,
+            LocalDate startDate,
+            LocalDate endDate
+    );
 
     // =====================================================
     // Dashboard Queries
     // =====================================================
 
-        @Query("""
-                SELECT COALESCE(SUM(i.amount),0)
-                FROM Income i
-                WHERE i.user = :user
-                """)
-        BigDecimal getTotalIncome(
-                @Param("user") User user
-        );
+    @Query("""
+            SELECT COALESCE(SUM(i.amount), 0)
+            FROM Income i
+            WHERE i.user = :user
+            """)
+    BigDecimal getTotalIncome(
+            @Param("user") User user
+    );
 
-        // =====================================================
-        // Notification Queries
-        // =====================================================
+    // =====================================================
+    // Notification Queries
+    // =====================================================
 
-        boolean existsByUserAndCreatedAtAfter(
-                User user,
-                LocalDateTime time
-        );
+    boolean existsByUserAndCreatedAtAfter(
+            User user,
+            LocalDateTime time
+    );
 
-        @Query("""
-                SELECT COALESCE(AVG(i.amount),0)
-                FROM Income i
-                WHERE i.user=:user
-                """)
-        BigDecimal getAverageIncome(@Param("user") User user);
+    @Query("""
+            SELECT COALESCE(SUM(i.amount), 0)
+            FROM Income i
+            WHERE i.user = :user
+              AND i.incomeDate BETWEEN :startDate AND :endDate
+            """)
+    BigDecimal getTotalIncomeByDateRange(
+            @Param("user") User user,
+            @Param("startDate") LocalDate startDate,
+            @Param("endDate") LocalDate endDate
+    );
 
+    @Query("""
+            SELECT COALESCE(AVG(i.amount), 0)
+            FROM Income i
+            WHERE i.user = :user
+            """)
+    BigDecimal getAverageIncome(
+            @Param("user") User user
+    );
 }

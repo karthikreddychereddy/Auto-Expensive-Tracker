@@ -2,90 +2,349 @@ package com.paisatrack.backend.service.impl;
 
 import com.paisatrack.backend.dto.CategoryRequest;
 import com.paisatrack.backend.dto.CategoryResponse;
+
 import com.paisatrack.backend.entity.Category;
+import com.paisatrack.backend.entity.User;
+
 import com.paisatrack.backend.repository.CategoryRepository;
+import com.paisatrack.backend.repository.UserRepository;
+
 import com.paisatrack.backend.service.CategoryService;
+
+import com.paisatrack.backend.util.SecurityUtil;
+
 import lombok.RequiredArgsConstructor;
+
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class CategoryServiceImpl implements CategoryService {
+public class CategoryServiceImpl
+        implements CategoryService {
 
-    private final CategoryRepository categoryRepository;
+    private final CategoryRepository
+            categoryRepository;
+
+    private final UserRepository
+            userRepository;
+
+    // ==========================================
+    // CREATE
+    // ==========================================
 
     @Override
-    public CategoryResponse createCategory(CategoryRequest request) {
+    @Transactional
+    public CategoryResponse createCategory(
+            CategoryRequest request
+    ) {
 
-        if (categoryRepository.existsByName(request.getName())) {
-            throw new RuntimeException("Category already exists");
+        User user =
+                getCurrentUser();
+
+        String name =
+                request
+                        .getName()
+                        .trim();
+
+        if (
+                categoryRepository
+                        .existsByUserAndNameIgnoreCase(
+                                user,
+                                name
+                        )
+        ) {
+
+            throw new RuntimeException(
+                    "Category already exists"
+            );
         }
 
-        Category category = Category.builder()
-                .name(request.getName())
-                .description(request.getDescription())
-                .color(request.getColor())
-                .icon(request.getIcon())
-                .build();
+        Category category =
+                Category.builder()
 
-        Category savedCategory = categoryRepository.save(category);
+                        .user(user)
 
-        return mapToResponse(savedCategory);
+                        .name(name)
+
+                        .description(
+                                clean(
+                                        request.getDescription()
+                                )
+                        )
+
+                        .color(
+                                clean(
+                                        request.getColor()
+                                )
+                        )
+
+                        .icon(
+                                clean(
+                                        request.getIcon()
+                                )
+                        )
+
+                        .build();
+
+        Category saved =
+                categoryRepository.save(
+                        category
+                );
+
+        return mapToResponse(
+                saved
+        );
     }
 
-    @Override
-    public List<CategoryResponse> getAllCategories() {
+    // ==========================================
+    // GET ALL CURRENT USER CATEGORIES
+    // ==========================================
 
-        return categoryRepository.findAll()
+    @Override
+    public List<CategoryResponse>
+    getAllCategories() {
+
+        User user =
+                getCurrentUser();
+
+        return categoryRepository
+                .findByUserOrderByNameAsc(
+                        user
+                )
+
                 .stream()
-                .map(this::mapToResponse)
+
+                .map(
+                        this::mapToResponse
+                )
+
                 .toList();
     }
 
-    @Override
-    public CategoryResponse getCategoryById(Long id) {
-
-        Category category = categoryRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Category not found"));
-
-        return mapToResponse(category);
-    }
+    // ==========================================
+    // GET BY ID
+    // ==========================================
 
     @Override
-    public CategoryResponse updateCategory(Long id, CategoryRequest request) {
+    public CategoryResponse getCategoryById(
+            Long id
+    ) {
 
-        Category category = categoryRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Category not found"));
+        User user =
+                getCurrentUser();
 
-        category.setName(request.getName());
-        category.setDescription(request.getDescription());
-        category.setColor(request.getColor());
-        category.setIcon(request.getIcon());
+        Category category =
+                categoryRepository
+                        .findByIdAndUser(
+                                id,
+                                user
+                        )
 
-        Category updatedCategory = categoryRepository.save(category);
+                        .orElseThrow(() ->
+                                new RuntimeException(
+                                        "Category not found"
+                                )
+                        );
 
-        return mapToResponse(updatedCategory);
+        return mapToResponse(
+                category
+        );
     }
+
+    // ==========================================
+    // UPDATE
+    // ==========================================
 
     @Override
-    public void deleteCategory(Long id) {
+    @Transactional
+    public CategoryResponse updateCategory(
+            Long id,
+            CategoryRequest request
+    ) {
 
-        Category category = categoryRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Category not found"));
+        User user =
+                getCurrentUser();
 
-        categoryRepository.delete(category);
+        Category category =
+                categoryRepository
+                        .findByIdAndUser(
+                                id,
+                                user
+                        )
+
+                        .orElseThrow(() ->
+                                new RuntimeException(
+                                        "Category not found"
+                                )
+                        );
+
+        String name =
+                request
+                        .getName()
+                        .trim();
+
+        categoryRepository
+                .findByUserAndNameIgnoreCase(
+                        user,
+                        name
+                )
+                .ifPresent(existing -> {
+
+                    if (
+                            !existing
+                                    .getId()
+                                    .equals(
+                                            category.getId()
+                                    )
+                    ) {
+
+                        throw new RuntimeException(
+                                "Category already exists"
+                        );
+                    }
+                });
+
+        category.setName(
+                name
+        );
+
+        category.setDescription(
+                clean(
+                        request.getDescription()
+                )
+        );
+
+        category.setColor(
+                clean(
+                        request.getColor()
+                )
+        );
+
+        category.setIcon(
+                clean(
+                        request.getIcon()
+                )
+        );
+
+        Category updated =
+                categoryRepository.save(
+                        category
+                );
+
+        return mapToResponse(
+                updated
+        );
     }
 
-    private CategoryResponse mapToResponse(Category category) {
+    // ==========================================
+    // DELETE
+    // ==========================================
 
-        return CategoryResponse.builder()
-                .id(category.getId())
-                .name(category.getName())
-                .description(category.getDescription())
-                .color(category.getColor())
-                .icon(category.getIcon())
+    @Override
+    @Transactional
+    public void deleteCategory(
+            Long id
+    ) {
+
+        User user =
+                getCurrentUser();
+
+        Category category =
+                categoryRepository
+                        .findByIdAndUser(
+                                id,
+                                user
+                        )
+
+                        .orElseThrow(() ->
+                                new RuntimeException(
+                                        "Category not found"
+                                )
+                        );
+
+        categoryRepository.delete(
+                category
+        );
+    }
+
+    // ==========================================
+    // CURRENT USER
+    // ==========================================
+
+    private User getCurrentUser() {
+
+        String email =
+                SecurityUtil
+                        .getCurrentUserEmail();
+
+        return userRepository
+                .findByEmail(
+                        email
+                )
+
+                .orElseThrow(() ->
+                        new RuntimeException(
+                                "User not found"
+                        )
+                );
+    }
+
+    // ==========================================
+    // CLEAN OPTIONAL STRING
+    // ==========================================
+
+    private String clean(
+            String value
+    ) {
+
+        if (
+                value == null
+        ) {
+            return null;
+        }
+
+        String cleaned =
+                value.trim();
+
+        return cleaned.isEmpty()
+                ? null
+                : cleaned;
+    }
+
+    // ==========================================
+    // RESPONSE
+    // ==========================================
+
+    private CategoryResponse mapToResponse(
+            Category category
+    ) {
+
+        return CategoryResponse
+                .builder()
+
+                .id(
+                        category.getId()
+                )
+
+                .name(
+                        category.getName()
+                )
+
+                .description(
+                        category.getDescription()
+                )
+
+                .color(
+                        category.getColor()
+                )
+
+                .icon(
+                        category.getIcon()
+                )
+
                 .build();
     }
 }

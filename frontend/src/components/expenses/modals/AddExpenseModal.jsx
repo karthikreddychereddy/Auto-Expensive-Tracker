@@ -16,6 +16,7 @@ export default function AddExpenseModal({ open, onClose, initialExpense }) {
   const [tab, setTab] = useState("manual");
   const { addExpense, updateExpense } = useExpenses();
   const [submitForm, setSubmitForm] = useState(null);
+  const [receiptExpense, setReceiptExpense] = useState(null);
 
   if (!open) return null;
 
@@ -144,7 +145,7 @@ export default function AddExpenseModal({ open, onClose, initialExpense }) {
 
           {tab === "manual" && (
             <ExpenseForm
-              initial={initialExpense}
+              initial={receiptExpense || initialExpense}
               onSubmit={handleSave}
               onCancel={onClose}
               registerSubmit={setSubmitForm}
@@ -152,7 +153,28 @@ export default function AddExpenseModal({ open, onClose, initialExpense }) {
           )}
 
           {tab === "receipt" && (
-            <ReceiptUpload />
+              <ReceiptUpload
+                  onReceiptProcessed={(expense) => {
+
+                      if (!expense) {
+                          console.error("Receipt AI returned no data.");
+                          return;
+                      }
+
+                      setReceiptExpense({
+                          title: expense.merchant || "Receipt Expense",
+                          amount: expense.amount || "",
+                          merchant: expense.merchant || "",
+                          category: expense.category || "Others",
+                          paymentMethod: expense.paymentMode || "Cash",
+                          date:
+                              expense.date ||
+                              new Date().toISOString().slice(0, 10),
+                      });
+
+                      setTab("manual");
+                  }}
+              />
           )}
 
           {tab === "sms" && (

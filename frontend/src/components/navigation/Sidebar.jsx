@@ -1,5 +1,6 @@
-import { NavLink, useNavigate } from "react-router-dom";
-import { useAuth } from "../../context/AuthContext";
+import {
+  NavLink,
+} from "react-router-dom";
 
 import {
   MdDashboard,
@@ -9,7 +10,6 @@ import {
   MdCategory,
   MdAnalytics,
 } from "react-icons/md";
-import { FaBell } from "react-icons/fa";
 
 import {
   FaWallet,
@@ -17,9 +17,8 @@ import {
   FaRobot,
   FaCog,
   FaUserCircle,
+  FaTimes,
 } from "react-icons/fa";
-
-import { FiLogOut } from "react-icons/fi";
 
 const menuItems = [
   {
@@ -69,112 +68,162 @@ const menuItems = [
   },
 ];
 
-export default function Sidebar() {
+function NavigationItem({
+  item,
+  onNavigate,
+}) {
+  return (
+    <NavLink
+      to={item.path}
+      onClick={onNavigate}
+      className={({ isActive }) =>
+        `
+          flex
+          items-center
+          gap-4
+          rounded-xl
+          px-4
+          py-3 sm:px-5
+          min-h-11
+          transition-all
+          duration-200
+          focus-visible:outline-none
+          focus-visible:ring-2
+          focus-visible:ring-[#0B6B57]/50
+          ${
+            isActive
+              ? "bg-[#0B6B57] text-white shadow-md"
+              : "text-slate-600 hover:bg-slate-100 hover:text-[#0B6B57] dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-emerald-400"
+          }
+        `
+      }
+    >
+      {item.icon}
 
-  const { logout } = useAuth();
-  const navigate = useNavigate();
+      <span className="font-medium">
+        {item.name}
+      </span>
+    </NavLink>
+  );
+}
 
-  const handleLogout = () => {
-
-    navigate("/login");
-
+export default function Sidebar({
+  open = false,
+  onClose,
+}) {
+  const closeSidebar = () => {
+    onClose?.();
   };
 
   return (
+    <>
+      {/* Mobile overlay */}
 
-    <aside className="fixed left-0 top-0 w-72 h-screen bg-white dark:bg-slate-900 border-r border-gray-200 dark:border-slate-700 flex flex-col z-40 transition-colors duration-300">
+      <div
+        role="button"
+        tabIndex={-1}
+        aria-label="Close navigation"
+        onClick={closeSidebar}
+        className={`
+          fixed
+          inset-0
+          z-40
+          bg-black/40
+          backdrop-blur-sm
+          transition-opacity
+          duration-300
+          lg:hidden
+          ${
+            open
+              ? "pointer-events-auto opacity-100"
+              : "pointer-events-none opacity-0"
+          }
+        `}
+      />
 
-      <div className="h-20 flex items-center px-8 border-b border-gray-200 dark:border-slate-700 flex-shrink-0">
+      <aside
+        id="primary-sidebar"
+        aria-label="Primary navigation"
+        className={`
+          fixed
+          left-0
+          top-0
+          z-50
+          flex
+          h-screen
+          w-[min(18rem,88vw)]
+          flex-col
+          border-r
+          border-slate-200
+          bg-white
+          shadow-xl
+          transition-all
+          duration-300
+          dark:border-slate-700
+          dark:bg-slate-900
+          lg:z-40
+          lg:translate-x-0
+          lg:shadow-none
+          ${
+            open
+              ? "translate-x-0"
+              : "-translate-x-full"
+          }
+        `}
+      >
 
-        <h1 className="text-3xl font-bold text-[#0B6B57]">
+        <div className="flex h-20 shrink-0 items-center justify-between border-b border-slate-200 px-6 dark:border-slate-700">
 
-          PaisaTrack
+          <h1 className="text-3xl font-bold text-[#0B6B57]">
+            PaisaTrack
+          </h1>
 
-        </h1>
-
-      </div>
-
-      <div className="flex-1 overflow-y-auto py-6 px-4 space-y-2">
-
-        {menuItems.map((item) => (
-
-          <NavLink
-            key={item.name}
-            to={item.path}
-            className={({ isActive }) =>
-              `flex items-center gap-4 px-5 py-3 rounded-xl transition-all duration-300
-              ${
-                isActive
-                  ? "bg-[#0B6B57] text-white shadow-lg"
-                  : "text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-800 hover:text-[#0B6B57]"
-              }`
-            }
+          <button
+            type="button"
+            onClick={closeSidebar}
+            aria-label="Close menu"
+            className="flex h-11 w-11 items-center justify-center rounded-xl text-slate-500 transition hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0B6B57] dark:text-slate-300 dark:hover:bg-slate-800 lg:hidden"
           >
+            <FaTimes size={18} />
+          </button>
 
-            {item.icon}
+        </div>
 
-            <span className="font-medium">
+        <nav className="flex-1 space-y-2 overflow-y-auto px-4 py-6">
 
-              {item.name}
+          {menuItems.map(item => (
+            <NavigationItem
+              key={item.name}
+              item={item}
+              onNavigate={closeSidebar}
+            />
+          ))}
 
-            </span>
+        </nav>
 
-          </NavLink>
+        <div className="shrink-0 space-y-2 border-t border-slate-200 p-4 dark:border-slate-700">
 
-        ))}
+          <NavigationItem
+            item={{
+              name: "Profile",
+              path: "/profile",
+              icon: <FaUserCircle size={20} />,
+            }}
+            onNavigate={closeSidebar}
+          />
 
-      </div>
+          <NavigationItem
+            item={{
+              name: "Settings",
+              path: "/settings",
+              icon: <FaCog size={20} />,
+            }}
+            onNavigate={closeSidebar}
+          />
 
-      <div className="border-t border-gray-200 dark:border-slate-700 p-4 space-y-2 flex-shrink-0">
+        </div>
 
-        <NavLink
-          to="/profile"
-          className={({ isActive }) =>
-            `flex items-center gap-4 px-5 py-3 rounded-xl transition-all duration-300
-            ${
-              isActive
-                ? "bg-[#0B6B57] text-white shadow-lg"
-                : "text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-800 hover:text-[#0B6B57]"
-            }`
-          }
-        >
-
-          <FaUserCircle size={20} />
-
-          <span className="font-medium">
-
-            Profile
-
-          </span>
-
-        </NavLink>
-
-        <NavLink
-          to="/settings"
-          className={({ isActive }) =>
-            `flex items-center gap-4 px-5 py-3 rounded-xl transition-all duration-300
-            ${
-              isActive
-                ? "bg-[#0B6B57] text-white shadow-lg"
-                : "text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-800 hover:text-[#0B6B57]"
-            }`
-          }
-        >
-
-          <FaCog size={20} />
-
-          <span className="font-medium">
-
-            Settings
-
-          </span>
-
-        </NavLink>
-
-      </div>
-
-    </aside>
-
+      </aside>
+    </>
   );
-
 }

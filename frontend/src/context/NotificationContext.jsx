@@ -1,394 +1,479 @@
 import {
   createContext,
-  useContext,
-  useState,
-  useEffect,
   useCallback,
+  useContext,
+  useEffect,
+  useState,
 } from "react";
 
-import { notificationService } from "../services/notificationService";
-import { useAuth } from "./AuthContext";
+import {
+  notificationService,
+} from "../services/notificationService";
 
-const NotificationContext = createContext(null);
+import {
+  useAuth,
+} from "./AuthContext";
 
-export function NotificationProvider({ children }) {
+const NotificationContext =
+  createContext(null);
 
-  const { user } = useAuth();
+export function NotificationProvider({
+  children,
+}) {
+  const {
+    user,
+  } = useAuth();
 
-  const [notifications, setNotifications] = useState([]);
+  const [
+    notifications,
+    setNotifications,
+  ] = useState([]);
 
-  const [unreadCount, setUnreadCount] = useState(0);
+  const [
+    unreadCount,
+    setUnreadCount,
+  ] = useState(0);
 
-  const [settings, setSettings] = useState(null);
+  const [
+    settings,
+    setSettings,
+  ] = useState(null);
 
-  const [loading, setLoading] = useState(false);
+  const [
+    loading,
+    setLoading,
+  ] = useState(false);
 
-  const [savingSettings, setSavingSettings] =
-    useState(false);
-
-  // ==========================================
-  // Fetch Notifications
-  // ==========================================
-
-  const fetchNotifications = useCallback(async () => {
-
-    if (!user) return;
-
-    setLoading(true);
-
-    try {
-
-      const data =
-        await notificationService.getNotifications();
-
-      setNotifications(data);
-
-    } catch (error) {
-
-      console.error(
-        "Failed to fetch notifications",
-        error
-      );
-
-    } finally {
-
-      setLoading(false);
-
-    }
-
-  }, [user]);
+  const [
+    savingSettings,
+    setSavingSettings,
+  ] = useState(false);
 
   // ==========================================
-  // Fetch Unread Count
+  // FETCH UNREAD NOTIFICATIONS ONLY
   // ==========================================
 
-  const fetchUnreadCount = useCallback(async () => {
+  const fetchNotifications =
+    useCallback(async () => {
+      if (!user) {
+        setNotifications([]);
+        return;
+      }
 
-    if (!user) return;
+      setLoading(true);
 
-    try {
+      try {
+        const data =
+          await notificationService
+            .getNotifications();
 
-      const count =
-        await notificationService.getUnreadCount();
+        const allNotifications =
+          Array.isArray(data)
+            ? data
+            : [];
 
-      setUnreadCount(count);
+        /*
+         * Notification panel should contain
+         * unread notifications only.
+         */
+        const unreadNotifications =
+          allNotifications.filter(
+            notification =>
+              !notification.read
+          );
 
-    } catch (error) {
-
-      console.error(
-        "Failed to fetch unread count",
-        error
-      );
-
-    }
-
-  }, [user]);
-
-  // ==========================================
-  // Fetch Notification Settings
-  // ==========================================
-
-  const fetchSettings = useCallback(async () => {
-
-    if (!user) return;
-
-    try {
-
-      const data =
-        await notificationService.getSettings();
-
-      setSettings(data);
-
-    } catch (error) {
-
-      console.error(
-        "Failed to fetch notification settings",
-        error
-      );
-
-    }
-
-  }, [user]);
-
-  // ==========================================
-  // Save Notification Settings
-  // ==========================================
-
-  const saveSettings = async (payload) => {
-
-    setSavingSettings(true);
-
-    try {
-
-      const updated =
-        await notificationService.updateSettings(
-          payload
+        setNotifications(
+          unreadNotifications
         );
 
-      setSettings(updated);
+        /*
+         * Keep badge synchronized with
+         * actual unread list.
+         */
+        setUnreadCount(
+          unreadNotifications.length
+        );
 
-      return true;
+      } catch (error) {
+        console.error(
+          "Failed to fetch notifications",
+          error
+        );
 
-    } catch (error) {
-
-      console.error(
-        "Failed to update notification settings",
-        error
-      );
-
-      return false;
-
-    } finally {
-
-      setSavingSettings(false);
-
-    }
-
-  };
+      } finally {
+        setLoading(false);
+      }
+    }, [user]);
 
   // ==========================================
-  // Mark Notification Read
+  // FETCH UNREAD COUNT
   // ==========================================
 
-  const markAsRead = async (id) => {
+  const fetchUnreadCount =
+    useCallback(async () => {
+      if (!user) {
+        setUnreadCount(0);
+        return;
+      }
 
-    try {
+      try {
+        const count =
+          await notificationService
+            .getUnreadCount();
 
-      await notificationService.markAsRead(id);
+        setUnreadCount(
+          Number(count) || 0
+        );
 
-      setNotifications((prev) =>
-        prev.filter((notification) => notification.id !== id)
-      );
-
-      setUnreadCount((prev) => Math.max(prev - 1, 0));
-
-    } catch (error) {
-
-      console.error(
-        "Failed to mark notification as read",
-        error
-      );
-
-    }
-
-  };
-
-  const markAllAsRead = async () => {
-
-    try {
-
-      await notificationService.markAllAsRead();
-
-      setNotifications([]);
-
-      setUnreadCount(0);
-
-    } catch (error) {
-
-      console.error(error);
-
-    }
-
-  };
+      } catch (error) {
+        console.error(
+          "Failed to fetch unread count",
+          error
+        );
+      }
+    }, [user]);
 
   // ==========================================
-  // Delete Notification
+  // FETCH SETTINGS
   // ==========================================
 
-  const deleteNotification = async (id) => {
+  const fetchSettings =
+    useCallback(async () => {
+      if (!user) {
+        setSettings(null);
+        return;
+      }
 
-    try {
+      try {
+        const data =
+          await notificationService
+            .getSettings();
 
-      await notificationService.deleteNotification(id);
+        setSettings(data);
 
-      setNotifications((prev) =>
-        prev.filter((notification) =>
-          notification.id !== id
-        )
-      );
+      } catch (error) {
+        console.error(
+          "Failed to fetch notification settings",
+          error
+        );
+      }
+    }, [user]);
 
-      setUnreadCount((prev) =>
-        Math.max(
-          prev -
-            (
-              notifications.find(
-                (notification) =>
-                  notification.id === id &&
-                  !notification.read
+  // ==========================================
+  // SAVE SETTINGS
+  // ==========================================
+
+  const saveSettings =
+    async payload => {
+      setSavingSettings(true);
+
+      try {
+        const updated =
+          await notificationService
+            .updateSettings(
+              payload
+            );
+
+        setSettings(updated);
+
+        window.dispatchEvent(
+          new CustomEvent(
+            "notification-reminder-settings-updated",
+            {
+              detail: {
+                enabled:
+                  Boolean(
+                    updated?.enabled
+                  ),
+              },
+            }
+          )
+        );
+
+        return true;
+
+      } catch (error) {
+        console.error(
+          "Failed to update notification settings",
+          error
+        );
+
+        return false;
+
+      } finally {
+        setSavingSettings(false);
+      }
+    };
+
+  // ==========================================
+  // MARK ONE AS READ
+  // ==========================================
+
+  const markAsRead =
+    async id => {
+      try {
+        const target =
+          notifications.find(
+            notification =>
+              notification.id ===
+              id
+          );
+
+        await notificationService
+          .markAsRead(id);
+
+        /*
+         * Remove immediately from panel.
+         */
+        setNotifications(
+          previous =>
+            previous.filter(
+              notification =>
+                notification.id !==
+                id
+            )
+        );
+
+        if (target) {
+          setUnreadCount(
+            previous =>
+              Math.max(
+                previous - 1,
+                0
               )
-                ? 1
-                : 0
-            ),
-          0
-        )
-      );
+          );
+        }
 
-    } catch (error) {
+        return true;
 
-      console.error(
-        "Failed to delete notification",
-        error
-      );
+      } catch (error) {
+        console.error(
+          "Failed to mark notification as read",
+          error
+        );
 
-    }
+        return false;
+      }
+    };
 
-  };
-    // ==========================================
-  // Initial Load
+  // ==========================================
+  // MARK ALL AS READ
+  // ==========================================
+
+  const markAllAsRead =
+    async () => {
+      try {
+        await notificationService
+          .markAllAsRead();
+
+        /*
+         * All notifications disappear
+         * immediately from dropdown.
+         */
+        setNotifications([]);
+
+        setUnreadCount(0);
+
+        return true;
+
+      } catch (error) {
+        console.error(
+          "Failed to mark all notifications as read",
+          error
+        );
+
+        return false;
+      }
+    };
+
+  // ==========================================
+  // DELETE NOTIFICATION
+  // ==========================================
+
+  const deleteNotification =
+    async id => {
+      try {
+        const target =
+          notifications.find(
+            notification =>
+              notification.id ===
+              id
+          );
+
+        await notificationService
+          .deleteNotification(id);
+
+        setNotifications(
+          previous =>
+            previous.filter(
+              notification =>
+                notification.id !==
+                id
+            )
+        );
+
+        if (target) {
+          setUnreadCount(
+            previous =>
+              Math.max(
+                previous - 1,
+                0
+              )
+          );
+        }
+
+        return true;
+
+      } catch (error) {
+        console.error(
+          "Failed to delete notification",
+          error
+        );
+
+        return false;
+      }
+    };
+
+  // ==========================================
+  // USER INITIAL LOAD
   // ==========================================
 
   useEffect(() => {
-
     if (!user) {
-
       setNotifications([]);
-
       setUnreadCount(0);
-
       setSettings(null);
 
       return;
-
     }
 
     fetchNotifications();
-
-    fetchUnreadCount();
 
     fetchSettings();
 
   }, [
     user,
     fetchNotifications,
-    fetchUnreadCount,
     fetchSettings,
   ]);
 
   // ==========================================
-  // Auto Refresh Every 30 sec
+  // PERIODIC REFRESH
   // ==========================================
 
   useEffect(() => {
+    if (!user) {
+      return undefined;
+    }
 
-    fetchNotifications();
+    const interval =
+      setInterval(() => {
+        fetchNotifications();
+      }, 30000);
 
-    fetchUnreadCount();
-
-    const interval = setInterval(() => {
-
-      fetchNotifications();
-
-      fetchUnreadCount();
-
-    }, 5000);
-
-    return () => clearInterval(interval);
+    return () =>
+      clearInterval(
+        interval
+      );
 
   }, [
     user,
     fetchNotifications,
-    fetchUnreadCount,
   ]);
+
+  // ==========================================
+  // REFRESH WHEN APP GAINS FOCUS
+  // ==========================================
+
   useEffect(() => {
+    if (!user) {
+      return undefined;
+    }
 
-      const handleFocus = () => {
+    const refresh = () => {
+      fetchNotifications();
+    };
 
-          fetchNotifications();
-
-          fetchUnreadCount();
-
+    const handleVisibility =
+      () => {
+        if (
+          !document.hidden
+        ) {
+          refresh();
+        }
       };
 
-      window.addEventListener("focus", handleFocus);
+    window.addEventListener(
+      "focus",
+      refresh
+    );
 
-      return () => {
+    document.addEventListener(
+      "visibilitychange",
+      handleVisibility
+    );
 
-          window.removeEventListener(
-              "focus",
-              handleFocus
-          );
-
-      };
-
-  }, []);
-  useEffect(() => {
-
-      const handleVisibility = () => {
-
-          if (!document.hidden) {
-
-              fetchNotifications();
-
-              fetchUnreadCount();
-
-          }
-
-      };
-
-      document.addEventListener(
-          "visibilitychange",
-          handleVisibility
+    return () => {
+      window.removeEventListener(
+        "focus",
+        refresh
       );
 
-      return () => {
+      document.removeEventListener(
+        "visibilitychange",
+        handleVisibility
+      );
+    };
 
-          document.removeEventListener(
-              "visibilitychange",
-              handleVisibility
-          );
-
-      };
-
-  }, []);
+  }, [
+    user,
+    fetchNotifications,
+  ]);
 
   return (
-
     <NotificationContext.Provider
       value={{
-
-        // Notifications
         notifications,
+
         unreadCount,
+
         loading,
 
-        // Notification Settings
         settings,
+
         savingSettings,
 
-        // Notification APIs
         fetchNotifications,
+
         fetchUnreadCount,
+
         markAsRead,
+
         markAllAsRead,
+
         deleteNotification,
 
-        // Settings APIs
         fetchSettings,
-        saveSettings,
 
+        saveSettings,
       }}
     >
-
       {children}
-
     </NotificationContext.Provider>
-
   );
-
 }
 
 export function useNotifications() {
-
-  const context = useContext(NotificationContext);
+  const context =
+    useContext(
+      NotificationContext
+    );
 
   if (!context) {
-
     throw new Error(
       "useNotifications must be used within NotificationProvider"
     );
-
   }
 
   return context;
-
 }

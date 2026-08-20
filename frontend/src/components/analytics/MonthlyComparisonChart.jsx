@@ -46,9 +46,9 @@ export default function MonthlyComparisonChart() {
 
   return (
 
-    <div className="bg-white rounded-3xl shadow border p-6">
+    <div className="min-w-0 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-800 sm:rounded-3xl sm:p-6">
 
-      <h2 className="text-2xl font-bold mb-6">
+      <h2 className="mb-4 text-xl font-bold text-slate-800 dark:text-white sm:mb-6 sm:text-2xl">
 
         Last 6 Months Spending
 

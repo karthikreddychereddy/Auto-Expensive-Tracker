@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+
 import {
   FaArrowTrendUp,
   FaArrowTrendDown,
@@ -13,94 +14,138 @@ import { useSavings } from "../../context/SavingsContext";
 import { formatCurrency } from "../../utils/format";
 
 export default function MonthlyStatistics() {
+  const { totalIncome } =
+    useIncome();
 
-  const { totalIncome } = useIncome();
-  const { expenses } = useExpenses();
-  const { totalSavings } = useSavings();
+  const {
+    expenses = [],
+    selectedMonthExpenses,
+  } = useExpenses();
 
-  const totalExpense = expenses.reduce(
-    (sum, item) => sum + Number(item.amount),
-    0
-  );
+  const { totalSavings } =
+    useSavings();
 
-  const balance = totalIncome - totalExpense;
+  const monthlyExpenses =
+    Array.isArray(
+      selectedMonthExpenses
+    )
+      ? selectedMonthExpenses
+      : expenses;
+
+  const totalExpense =
+    monthlyExpenses.reduce(
+      (sum, item) =>
+        sum +
+        Number(item.amount || 0),
+      0
+    );
+
+  const income =
+    Number(totalIncome || 0);
+
+  const balance =
+    income - totalExpense;
 
   const stats = [
     {
-      title: "Income",
-      value: formatCurrency(totalIncome),
-      icon: <FaArrowTrendUp />,
+      title:
+        "This Month Income",
+      value:
+        formatCurrency(income),
+      icon:
+        <FaArrowTrendUp />,
       color: "bg-green-500",
     },
     {
-      title: "Expense",
-      value: formatCurrency(totalExpense),
-      icon: <FaArrowTrendDown />,
+      title:
+        "This Month Expense",
+      value:
+        formatCurrency(
+          totalExpense
+        ),
+      icon:
+        <FaArrowTrendDown />,
       color: "bg-red-500",
     },
     {
-      title: "Savings",
-      value: formatCurrency(totalSavings),
+      title:
+        "Total Savings",
+      value:
+        formatCurrency(
+          Number(
+            totalSavings || 0
+          )
+        ),
       icon: <FaPiggyBank />,
       color: "bg-blue-500",
     },
     {
-      title: "Balance",
-      value: formatCurrency(balance),
+      title:
+        "Available Balance",
+      value:
+        formatCurrency(balance),
       icon: <FaWallet />,
       color: "bg-purple-500",
     },
   ];
 
   return (
+    <section className="h-full space-y-5">
 
-    <section className="space-y-6">
+      <div>
+        <h2 className="text-2xl font-bold text-slate-800 dark:text-white">
+          Financial Summary
+        </h2>
 
-      <h2 className="text-3xl font-bold">
+        <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+          A quick view of your current financial position.
+        </p>
+      </div>
 
-        Monthly Statistics
+      <div className="grid gap-4 sm:grid-cols-2">
 
-      </h2>
+        {stats.map(
+          (item, index) => (
+            <motion.div
+              key={item.title}
+              initial={{
+                opacity: 0,
+                y: 20,
+              }}
+              animate={{
+                opacity: 1,
+                y: 0,
+              }}
+              transition={{
+                delay:
+                  index * 0.08,
+              }}
+              whileHover={{
+                y: -3,
+              }}
+              className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-700 dark:bg-slate-900"
+            >
 
-      <div className="grid md:grid-cols-2 xl:grid-cols-4 gap-6">
+              <div
+                className={`flex h-12 w-12 items-center justify-center rounded-2xl text-xl text-white ${item.color}`}
+              >
+                {item.icon}
+              </div>
 
-        {stats.map((item, index) => (
+              <p className="mt-4 text-sm text-slate-500 dark:text-slate-400">
+                {item.title}
+              </p>
 
-          <motion.div
-            key={item.title}
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * .1 }}
-            whileHover={{ y: -6 }}
-            className="bg-white rounded-3xl shadow-lg border p-6"
-          >
+              <h3 className="mt-2 break-words text-2xl font-bold text-slate-800 dark:text-white">
+                {item.value}
+              </h3>
 
-            <div className={`w-16 h-16 rounded-2xl ${item.color} text-white flex items-center justify-center text-2xl`}>
-
-              {item.icon}
-
-            </div>
-
-            <p className="text-gray-500 mt-5">
-
-              {item.title}
-
-            </p>
-
-            <h2 className="text-3xl font-bold mt-2">
-
-              {item.value}
-
-            </h2>
-
-          </motion.div>
-
-        ))}
+            </motion.div>
+          )
+        )}
 
       </div>
 
     </section>
-
   );
-
 }

@@ -10,8 +10,7 @@ public class RegisterRequest {
     @NotBlank(message = "First Name is required")
     private String firstName;
 
-    @NotBlank(message = "Last Name is required")
-    private String lastName;
+    private String LastName;
 
     @Email(message = "Invalid email")
     @NotBlank(message = "Email is required")

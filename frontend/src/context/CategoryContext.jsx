@@ -1,5 +1,6 @@
 import {
   createContext,
+  useCallback,
   useContext,
   useEffect,
   useMemo,
@@ -8,293 +9,348 @@ import {
 
 import toast from "react-hot-toast";
 
-import { categoryService } from "../services/categoryService";
+import {
+  categoryService,
+} from "../services/categoryService";
 
+import {
+  useAuth,
+} from "./AuthContext";
 
-const CategoryContext = createContext(null);
+const CategoryContext =
+  createContext(null);
 
+export function CategoryProvider({
+  children,
+}) {
+  const {
+    user,
+  } = useAuth();
 
-export function CategoryProvider({ children }) {
+  const [
+    categories,
+    setCategories,
+  ] = useState([]);
 
+  const [
+    loading,
+    setLoading,
+  ] = useState(false);
 
-  const [categories, setCategories] = useState([]);
+  const [
+    error,
+    setError,
+  ] = useState(null);
 
-  const [loading, setLoading] = useState(true);
+  const [
+    search,
+    setSearch,
+  ] = useState("");
 
+  // ==========================================
+  // FETCH CATEGORIES
+  // ==========================================
 
-  const [search, setSearch] = useState("");
+  const fetchCategories =
+    useCallback(async () => {
+      if (!user) {
+        setCategories([]);
+        setLoading(false);
+        setError(null);
 
+        return;
+      }
 
-  // Temporary compatibility
-  const [typeFilter] = useState("All");
+      try {
+        setLoading(true);
+        setError(null);
 
-  const setTypeFilter = () => {};
+        const data =
+          await categoryService.list();
 
+        setCategories(
+          Array.isArray(data)
+            ? data
+            : []
+        );
 
+      } catch (error) {
+        console.error(
+          "Failed to load categories:",
+          error
+        );
 
-  // ==========================
-  // Fetch Categories
-  // ==========================
+        setCategories([]);
 
-  const fetchCategories = async () => {
+        setError(
+          error?.response?.data
+            ?.message ||
+          "Failed to load categories."
+        );
 
-    try {
+        toast.error(
+          "Failed to load categories"
+        );
 
-      setLoading(true);
+      } finally {
+        setLoading(false);
+      }
+    }, [user]);
 
-      const data = await categoryService.list();
-
-      setCategories(data);
-
-
-    } catch (error) {
-
-      console.error(error);
-
-      toast.error("Failed to load categories");
-
-    } finally {
-
-      setLoading(false);
-
-    }
-
-  };
-
+  // ==========================================
+  // USER CHANGE / LOGIN / LOGOUT
+  // ==========================================
 
   useEffect(() => {
-
-    fetchCategories();
-
-  }, []);
-
-
-
-
-  // ==========================
-  // CRUD
-  // ==========================
-
-
-  const addCategory = async (payload) => {
-
-    try {
-
-      const created =
-        await categoryService.create(payload);
-
-
-      setCategories(prev => [
-
-        created,
-
-        ...prev,
-
-      ]);
-
-
-      toast.success("Category Added");
-
-
-    } catch(error) {
-
-      console.error(error);
-
-      toast.error("Failed to add category");
-
+    if (user) {
+      fetchCategories();
+    } else {
+      setCategories([]);
+      setSearch("");
+      setError(null);
     }
-
-  };
-
-
-
-  const updateCategory = async (id, payload) => {
-
-    try {
-
-
-      const updated =
-        await categoryService.update(id,payload);
-
-
-      setCategories(prev =>
-
-        prev.map(item =>
-
-          item.id === id
-
-            ? updated
-
-            : item
-
-        )
-
-      );
-
-
-      toast.success("Category Updated");
-
-
-    } catch(error) {
-
-      console.error(error);
-
-      toast.error("Failed to update category");
-
-    }
-
-  };
-
-
-
-
-  const deleteCategory = async (id) => {
-
-    try {
-
-
-      await categoryService.remove(id);
-
-
-      setCategories(prev =>
-
-        prev.filter(item =>
-
-          item.id !== id
-
-        )
-
-      );
-
-
-      toast.success("Category Deleted");
-
-
-    } catch(error) {
-
-      console.error(error);
-
-      toast.error("Failed to delete category");
-
-    }
-
-  };
-
-
-
-
-
-  // ==========================
-  // Filters
-  // ==========================
-
-
-  const filteredCategories = useMemo(() => {
-
-
-    return categories.filter(item => {
-
-
-      const matchesSearch =
-
-        item.name
-
-          ?.toLowerCase()
-
-          .includes(search.toLowerCase());
-
-
-      return matchesSearch;
-
-
-    });
-
-
-  },[
-
-    categories,
-
-    search,
-
+  }, [
+    user,
+    fetchCategories,
   ]);
 
+  // ==========================================
+  // ADD CATEGORY
+  // ==========================================
 
+  const addCategory =
+    async payload => {
+      try {
+        const created =
+          await categoryService.create(
+            payload
+          );
 
+        setCategories(
+          previous => [
+            ...previous,
+            created,
+          ]
+        );
 
+        toast.success(
+          "Category Added"
+        );
 
-  // ==========================
-  // Summary
-  // ==========================
+        return created;
 
+      } catch (error) {
+        console.error(
+          "Add category failed:",
+          error
+        );
+
+        toast.error(
+          error?.response?.data
+            ?.message ||
+          "Failed to add category"
+        );
+
+        throw error;
+      }
+    };
+
+  // ==========================================
+  // UPDATE CATEGORY
+  // ==========================================
+
+  const updateCategory =
+    async (
+      id,
+      payload
+    ) => {
+      try {
+        const updated =
+          await categoryService.update(
+            id,
+            payload
+          );
+
+        setCategories(
+          previous =>
+            previous.map(
+              item =>
+                item.id === id
+                  ? updated
+                  : item
+            )
+        );
+
+        toast.success(
+          "Category Updated"
+        );
+
+        return updated;
+
+      } catch (error) {
+        console.error(
+          "Update category failed:",
+          error
+        );
+
+        toast.error(
+          error?.response?.data
+            ?.message ||
+          "Failed to update category"
+        );
+
+        throw error;
+      }
+    };
+
+  // ==========================================
+  // DELETE CATEGORY
+  // ==========================================
+
+  const deleteCategory =
+    async id => {
+      try {
+        await categoryService.remove(
+          id
+        );
+
+        setCategories(
+          previous =>
+            previous.filter(
+              item =>
+                item.id !== id
+            )
+        );
+
+        toast.success(
+          "Category Deleted"
+        );
+
+      } catch (error) {
+        console.error(
+          "Delete category failed:",
+          error
+        );
+
+        toast.error(
+          error?.response?.data
+            ?.message ||
+          "Failed to delete category"
+        );
+
+        throw error;
+      }
+    };
+
+  // ==========================================
+  // FILTERED CATEGORIES
+  // ==========================================
+
+  const filteredCategories =
+    useMemo(() => {
+      const normalizedSearch =
+        search
+          .trim()
+          .toLowerCase();
+
+      if (!normalizedSearch) {
+        return categories;
+      }
+
+      return categories.filter(
+        item =>
+          item.name
+            ?.toLowerCase()
+            .includes(
+              normalizedSearch
+            ) ||
+          item.description
+            ?.toLowerCase()
+            .includes(
+              normalizedSearch
+            )
+      );
+    }, [
+      categories,
+      search,
+    ]);
+
+  // ==========================================
+  // SUMMARY
+  // ==========================================
 
   const totalCategories =
     categories.length;
 
+  const categoriesWithIcons =
+    categories.filter(
+      item =>
+        Boolean(
+          item.icon?.trim()
+        )
+    ).length;
 
-  // Compatibility values
-  const incomeCategories = 0;
+  const categoriesWithColors =
+    categories.filter(
+      item =>
+        Boolean(
+          item.color?.trim()
+        )
+    ).length;
 
-  const expenseCategories = categories.length;
+  const categoriesWithDescriptions =
+    categories.filter(
+      item =>
+        Boolean(
+          item.description?.trim()
+        )
+    ).length;
 
-
-
+  // ==========================================
+  // PROVIDER
+  // ==========================================
 
   return (
-
     <CategoryContext.Provider
-
       value={{
-
-
         loading,
-
+        error,
 
         categories,
-
         filteredCategories,
-
 
         fetchCategories,
 
-
         addCategory,
-
         updateCategory,
-
         deleteCategory,
 
-
-
         search,
-
         setSearch,
-
-
-        typeFilter,
-
-        setTypeFilter,
-
 
         totalCategories,
 
-        incomeCategories,
-
-        expenseCategories,
-
-
+        categoriesWithIcons,
+        categoriesWithColors,
+        categoriesWithDescriptions,
       }}
-
     >
-
       {children}
-
     </CategoryContext.Provider>
-
   );
-
 }
 
+export const useCategory = () => {
+  const context =
+    useContext(
+      CategoryContext
+    );
 
+  if (!context) {
+    throw new Error(
+      "useCategory must be used within CategoryProvider"
+    );
+  }
 
-export const useCategory = () =>
-  useContext(CategoryContext);
+  return context;
+};

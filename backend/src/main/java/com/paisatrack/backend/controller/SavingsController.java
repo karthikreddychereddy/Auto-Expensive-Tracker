@@ -2,8 +2,11 @@ package com.paisatrack.backend.controller;
 
 import com.paisatrack.backend.dto.SavingsRequest;
 import com.paisatrack.backend.dto.SavingsResponse;
+
 import com.paisatrack.backend.service.SavingsService;
+
 import lombok.RequiredArgsConstructor;
+
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -11,43 +14,96 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/savings")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "http://localhost:5173")
+@CrossOrigin(
+        origins = "http://localhost:5173"
+)
 public class SavingsController {
 
-    private final SavingsService savingsService;
+    private final SavingsService
+            savingsService;
+
+    // ==========================================
+    // CREATE
+    // ==========================================
 
     @PostMapping
     public SavingsResponse createSaving(
-            @RequestBody SavingsRequest request) {
+            @RequestBody
+            SavingsRequest request
+    ) {
 
-        return savingsService.createSaving(request);
+        return savingsService.createSaving(
+                request
+        );
     }
+
+    // ==========================================
+    // GET SAVINGS
+    //
+    // Example:
+    // /api/savings?month=2026-08
+    // ==========================================
 
     @GetMapping
-    public List<SavingsResponse> getAllSavings() {
+    public List<SavingsResponse>
+    getAllSavings(
+            @RequestParam(
+                    required = false
+            )
+            String month
+    ) {
 
-        return savingsService.getAllSavings();
+        return savingsService.getAllSavings(
+                month
+        );
     }
+
+    // ==========================================
+    // GET BY ID
+    // ==========================================
 
     @GetMapping("/{id}")
     public SavingsResponse getSavingById(
-            @PathVariable Long id) {
+            @PathVariable
+            Long id
+    ) {
 
-        return savingsService.getSavingById(id);
+        return savingsService.getSavingById(
+                id
+        );
     }
+
+    // ==========================================
+    // UPDATE
+    // ==========================================
 
     @PutMapping("/{id}")
     public SavingsResponse updateSaving(
-            @PathVariable Long id,
-            @RequestBody SavingsRequest request) {
+            @PathVariable
+            Long id,
 
-        return savingsService.updateSaving(id, request);
+            @RequestBody
+            SavingsRequest request
+    ) {
+
+        return savingsService.updateSaving(
+                id,
+                request
+        );
     }
+
+    // ==========================================
+    // DELETE
+    // ==========================================
 
     @DeleteMapping("/{id}")
     public void deleteSaving(
-            @PathVariable Long id) {
+            @PathVariable
+            Long id
+    ) {
 
-        savingsService.deleteSaving(id);
+        savingsService.deleteSaving(
+                id
+        );
     }
 }

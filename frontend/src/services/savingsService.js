@@ -1,29 +1,96 @@
 import api from "./api";
 
 export const savingsService = {
-  // Get all savings
-  list: () =>
-    api.get("/savings").then((res) => res.data),
 
-  // Create saving
-  create: (payload) =>
-    api.post("/savings", {
-      amount: payload.amount,
-      source: payload.source,
-      description: payload.description,
-      savingDate: payload.savingDate,
-    }).then((res) => res.data),
+  // ==========================================
+  // GET SAVINGS FOR MONTH
+  // ==========================================
 
-  // Update saving
-  update: (id, payload) =>
-    api.put(`/savings/${id}`, {
-      amount: payload.amount,
-      source: payload.source,
-      description: payload.description,
-      savingDate: payload.savingDate,
-    }).then((res) => res.data),
+  list: month =>
+    api
+      .get(
+        "/savings",
+        {
+          params: month
+            ? {
+                month,
+              }
+            : {},
+        }
+      )
+      .then(
+        response =>
+          response.data
+      ),
 
-  // Delete saving
-  remove: (id) =>
-    api.delete(`/savings/${id}`).then((res) => res.data),
+  // ==========================================
+  // CREATE
+  // ==========================================
+
+  create: payload =>
+    api
+      .post(
+        "/savings",
+        {
+          amount:
+            payload.amount,
+
+          source:
+            payload.source,
+
+          description:
+            payload.description,
+
+          savingDate:
+            payload.savingDate,
+        }
+      )
+      .then(
+        response =>
+          response.data
+      ),
+
+  // ==========================================
+  // UPDATE
+  // ==========================================
+
+  update: (
+    id,
+    payload
+  ) =>
+    api
+      .put(
+        `/savings/${id}`,
+        {
+          amount:
+            payload.amount,
+
+          source:
+            payload.source,
+
+          description:
+            payload.description,
+
+          savingDate:
+            payload.savingDate,
+        }
+      )
+      .then(
+        response =>
+          response.data
+      ),
+
+  // ==========================================
+  // DELETE
+  // ==========================================
+
+  remove: id =>
+    api
+      .delete(
+        `/savings/${id}`
+      )
+      .then(
+        response =>
+          response.data
+      ),
 };

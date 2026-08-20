@@ -8,15 +8,29 @@ import java.util.List;
 
 public interface BudgetService {
 
-    BudgetResponse createBudget(BudgetRequest request);
+    BudgetResponse createBudget(
+            BudgetRequest request
+    );
 
-    List<BudgetResponse> getAllBudgets();
+    List<BudgetResponse> getAllBudgets(
+            String month
+    );
 
-    BudgetResponse getBudgetById(Long id);
+    BudgetResponse getBudgetById(
+            Long id
+    );
 
-    BudgetResponse updateBudget(Long id, BudgetRequest request);
+    BudgetResponse updateBudget(
+            Long id,
+            BudgetRequest request
+    );
 
-    void deleteBudget(Long id);
+    void deleteBudget(
+            Long id
+    );
 
-    List<BudgetStatusResponse> getBudgetStatus();
+    List<BudgetStatusResponse>
+    getBudgetStatus(
+            String month
+    );
 }

@@ -3,177 +3,316 @@ import {
   FaCar,
   FaShoppingBag,
   FaBolt,
-  FaEye,
+  FaWallet,
   FaEdit,
   FaTrash,
 } from "react-icons/fa";
 
-const expenses = [
-  {
-    id: 1,
-    title: "Domino's Pizza",
-    category: "Food",
-    payment: "UPI",
-    date: "Today",
-    amount: "₹420",
-    icon: <FaUtensils />,
-  },
-  {
-    id: 2,
-    title: "Uber Ride",
-    category: "Transport",
-    payment: "Card",
-    date: "Today",
-    amount: "₹285",
-    icon: <FaCar />,
-  },
-  {
-    id: 3,
-    title: "Amazon",
-    category: "Shopping",
-    payment: "UPI",
-    date: "Yesterday",
-    amount: "₹1,250",
-    icon: <FaShoppingBag />,
-  },
-  {
-    id: 4,
-    title: "Electricity Bill",
-    category: "Bills",
-    payment: "Net Banking",
-    date: "02 Jul",
-    amount: "₹1,580",
-    icon: <FaBolt />,
-  },
-];
+import {
+  useExpenses,
+} from "../../context/ExpenseContext";
 
-export default function ExpenseTable() {
+import {
+  formatCurrency,
+} from "../../utils/format";
+
+function getCategoryIcon(
+  category
+) {
+  const value =
+    category
+      ?.toLowerCase() ||
+    "";
+
+  if (
+    value.includes("food")
+  ) {
+    return <FaUtensils />;
+  }
+
+  if (
+    value.includes(
+      "transport"
+    ) ||
+    value.includes(
+      "travel"
+    )
+  ) {
+    return <FaCar />;
+  }
+
+  if (
+    value.includes(
+      "shopping"
+    )
+  ) {
+    return <FaShoppingBag />;
+  }
+
+  if (
+    value.includes("bill") ||
+    value.includes(
+      "utility"
+    )
+  ) {
+    return <FaBolt />;
+  }
+
+  return <FaWallet />;
+}
+
+function formatDate(date) {
+  if (!date) {
+    return "-";
+  }
+
+  const value =
+    new Date(
+      `${date}T00:00:00`
+    );
+
+  if (
+    Number.isNaN(
+      value.getTime()
+    )
+  ) {
+    return date;
+  }
+
+  return value.toLocaleDateString(
+    "en-IN",
+    {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    }
+  );
+}
+
+export default function ExpenseTable({
+  onEdit,
+}) {
+  const {
+    filteredExpenses,
+    deleteExpense,
+    loading,
+  } = useExpenses();
+
+  const handleDelete =
+    async id => {
+      const confirmed =
+        window.confirm(
+          "Delete this expense?"
+        );
+
+      if (!confirmed) {
+        return;
+      }
+
+      await deleteExpense(id);
+    };
+
   return (
-    <div className="bg-white rounded-2xl shadow-sm border overflow-hidden">
+    <div
+      className="
+        overflow-hidden
+        rounded-2xl
+        border
+        border-slate-200
+        bg-white
+        shadow-sm
+        dark:border-slate-700
+        dark:bg-slate-900
+      "
+    >
+      <div className="flex items-center justify-between border-b border-slate-200 px-6 py-5 dark:border-slate-700">
 
-      <div className="px-6 py-5 border-b">
+        <div>
+          <h2 className="text-2xl font-bold text-slate-800 dark:text-white">
+            Expenses
+          </h2>
 
-        <h2 className="text-2xl font-bold">
-
-          Recent Expenses
-
-        </h2>
+          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+            {filteredExpenses.length}{" "}
+            {filteredExpenses.length ===
+            1
+              ? "expense"
+              : "expenses"}{" "}
+            found
+          </p>
+        </div>
 
       </div>
 
-      <table className="w-full">
+      {loading ? (
+        <div className="p-10 text-center text-slate-500">
+          Loading expenses...
+        </div>
+      ) : filteredExpenses.length ===
+        0 ? (
+        <div className="p-12 text-center">
 
-        <thead className="bg-gray-50">
+          <FaWallet className="mx-auto text-4xl text-slate-300" />
 
-          <tr>
+          <h3 className="mt-4 font-semibold text-slate-700 dark:text-white">
+            No expenses found
+          </h3>
 
-            <th className="text-left p-5">Expense</th>
+          <p className="mt-2 text-sm text-slate-500">
+            Try changing your search or filters.
+          </p>
 
-            <th className="text-left">Category</th>
+        </div>
+      ) : (
+        <div className="overflow-x-auto">
 
-            <th className="text-left">Payment</th>
+          <table className="w-full min-w-[850px]">
 
-            <th className="text-left">Date</th>
+            <thead className="bg-slate-50 dark:bg-slate-800">
 
-            <th className="text-right">Amount</th>
+              <tr className="text-sm text-slate-500 dark:text-slate-400">
 
-            <th className="text-center">Actions</th>
+                <th className="p-5 text-left font-semibold">
+                  Expense
+                </th>
 
-          </tr>
+                <th className="text-left font-semibold">
+                  Category
+                </th>
 
-        </thead>
+                <th className="text-left font-semibold">
+                  Payment
+                </th>
 
-        <tbody>
+                <th className="text-left font-semibold">
+                  Date
+                </th>
 
-          {expenses.map((expense) => (
+                <th className="text-right font-semibold">
+                  Amount
+                </th>
 
-            <tr
-              key={expense.id}
-              className="border-t hover:bg-gray-50 transition"
-            >
+                <th className="text-center font-semibold">
+                  Actions
+                </th>
 
-              <td className="p-5">
+              </tr>
 
-                <div className="flex items-center gap-4">
+            </thead>
 
-                  <div className="w-12 h-12 rounded-xl bg-green-100 text-[#0B6B57] flex items-center justify-center text-xl">
+            <tbody>
 
-                    {expense.icon}
+              {filteredExpenses.map(
+                expense => (
+                  <tr
+                    key={expense.id}
+                    className="
+                      border-t
+                      border-slate-100
+                      transition
+                      hover:bg-slate-50
+                      dark:border-slate-800
+                      dark:hover:bg-slate-800/60
+                    "
+                  >
 
-                  </div>
+                    <td className="p-5">
 
-                  <span className="font-semibold">
+                      <div className="flex min-w-0 items-center gap-4">
 
-                    {expense.title}
+                        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#0B6B57]/10 text-lg text-[#0B6B57]">
+                          {getCategoryIcon(
+                            expense.category
+                          )}
+                        </div>
 
-                  </span>
+                        <div className="min-w-0">
 
-                </div>
+                          <p className="max-w-[250px] truncate font-semibold text-slate-800 dark:text-white">
+                            {expense.title ||
+                              "Expense"}
+                          </p>
 
-              </td>
+                          {expense.merchant && (
+                            <p className="mt-1 max-w-[250px] truncate text-xs text-slate-500">
+                              {expense.merchant}
+                            </p>
+                          )}
 
-              <td>
+                        </div>
 
-                {expense.category}
+                      </div>
 
-              </td>
+                    </td>
 
-              <td>
+                    <td className="text-slate-700 dark:text-slate-300">
+                      {expense.category ||
+                        "-"}
+                    </td>
 
-                <span className="px-3 py-1 rounded-full bg-blue-100 text-blue-700 text-sm">
+                    <td>
+                      <span className="rounded-full bg-blue-50 px-3 py-1 text-sm text-blue-700 dark:bg-blue-950/30 dark:text-blue-300">
+                        {expense.paymentMethod ||
+                          "-"}
+                      </span>
+                    </td>
 
-                  {expense.payment}
+                    <td className="text-slate-600 dark:text-slate-400">
+                      {formatDate(
+                        expense.date
+                      )}
+                    </td>
 
-                </span>
+                    <td className="text-right font-bold text-red-500">
+                      {formatCurrency(
+                        expense.amount
+                      )}
+                    </td>
 
-              </td>
+                    <td>
+                      <div className="flex justify-center gap-2">
 
-              <td>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            onEdit?.(
+                              expense
+                            )
+                          }
+                          aria-label="Edit expense"
+                          title="Edit"
+                          className="flex h-9 w-9 items-center justify-center rounded-lg text-blue-500 transition hover:bg-blue-50 dark:hover:bg-blue-950/30"
+                        >
+                          <FaEdit />
+                        </button>
 
-                {expense.date}
+                        <button
+                          type="button"
+                          onClick={() =>
+                            handleDelete(
+                              expense.id
+                            )
+                          }
+                          aria-label="Delete expense"
+                          title="Delete"
+                          className="flex h-9 w-9 items-center justify-center rounded-lg text-red-500 transition hover:bg-red-50 dark:hover:bg-red-950/30"
+                        >
+                          <FaTrash />
+                        </button>
 
-              </td>
+                      </div>
+                    </td>
 
-              <td className="text-right font-bold text-red-500">
+                  </tr>
+                )
+              )}
 
-                {expense.amount}
+            </tbody>
 
-              </td>
+          </table>
 
-              <td>
-
-                <div className="flex justify-center gap-4">
-
-                  <button>
-
-                    <FaEye />
-
-                  </button>
-
-                  <button>
-
-                    <FaEdit className="text-blue-500"/>
-
-                  </button>
-
-                  <button>
-
-                    <FaTrash className="text-red-500"/>
-
-                  </button>
-
-                </div>
-
-              </td>
-
-            </tr>
-
-          ))}
-
-        </tbody>
-
-      </table>
-
+        </div>
+      )}
     </div>
   );
 }

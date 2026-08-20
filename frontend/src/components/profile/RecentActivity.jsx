@@ -54,7 +54,7 @@ export default function RecentActivity() {
 
   return (
 
-    <section className="space-y-6">
+    <section className="min-w-0 space-y-4 sm:space-y-6">
 
       <h2 className="text-3xl font-bold">
 

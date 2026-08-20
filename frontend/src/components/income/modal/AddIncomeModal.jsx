@@ -43,24 +43,24 @@ export default function AddIncomeModal({
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-3xl shadow-2xl w-full max-w-3xl overflow-hidden">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-3 backdrop-blur-sm sm:p-4">
+      <div className="max-h-[92dvh] w-full max-w-3xl overflow-y-auto rounded-2xl border border-slate-200 bg-white shadow-2xl dark:border-slate-700 dark:bg-slate-800 sm:rounded-3xl">
 
         {/* Header */}
-        <div className="flex justify-between items-center border-b p-6">
+        <div className="flex items-start justify-between gap-4 border-b border-slate-200 p-4 dark:border-slate-700 sm:p-6">
           <div>
-            <h2 className="text-3xl font-bold text-gray-800">
+            <h2 className="text-2xl font-bold text-slate-800 dark:text-white sm:text-3xl">
               {initialIncome ? "Edit Income" : "Add Income"}
             </h2>
 
-            <p className="text-gray-500 mt-1">
+            <p className="mt-1 text-sm text-slate-500 dark:text-slate-400 sm:text-base">
               Record your income.
             </p>
           </div>
 
           <button
             onClick={onClose}
-            className="hover:bg-gray-100 rounded-full p-2"
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-slate-600 transition hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-700"
           >
             <FaTimes size={22} />
           </button>
