@@ -5,17 +5,23 @@ import com.paisatrack.backend.service.EmailService;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.mail.SimpleMailMessage;
-import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
+import org.springframework.web.reactive.function.client.WebClient;
+
+import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
 public class EmailServiceImpl implements EmailService {
 
-    private final JavaMailSender mailSender;
+    private final WebClient.Builder webClientBuilder;
 
-    @Value("${spring.mail.username}")
+    @Value("${resend.api.key}")
+    private String resendApiKey;
+
+    @Value("${resend.from-email}")
     private String senderEmail;
 
     // ==========================================
@@ -29,28 +35,13 @@ public class EmailServiceImpl implements EmailService {
             String otp
     ) {
 
-        SimpleMailMessage message =
-                new SimpleMailMessage();
-
-        message.setFrom(
-                senderEmail
-        );
-
-        message.setTo(
-                email
-        );
-
-        message.setSubject(
-                "Verify your PaisaTrack account"
-        );
-
         String displayName =
                 firstName != null &&
                 !firstName.isBlank()
                         ? firstName
                         : "User";
 
-        message.setText(
+        String body =
                 """
                 Hi %s,
 
@@ -73,11 +64,12 @@ public class EmailServiceImpl implements EmailService {
                         .formatted(
                                 displayName,
                                 otp
-                        )
-        );
+                        );
 
-        mailSender.send(
-                message
+        sendEmail(
+                email,
+                "Verify your PaisaTrack account",
+                body
         );
     }
 
@@ -92,28 +84,13 @@ public class EmailServiceImpl implements EmailService {
             String otp
     ) {
 
-        SimpleMailMessage message =
-                new SimpleMailMessage();
-
-        message.setFrom(
-                senderEmail
-        );
-
-        message.setTo(
-                email
-        );
-
-        message.setSubject(
-                "Reset your PaisaTrack password"
-        );
-
         String displayName =
                 firstName != null &&
                 !firstName.isBlank()
                         ? firstName
                         : "User";
 
-        message.setText(
+        String body =
                 """
                 Hi %s,
 
@@ -136,11 +113,69 @@ public class EmailServiceImpl implements EmailService {
                         .formatted(
                                 displayName,
                                 otp
-                        )
-        );
+                        );
 
-        mailSender.send(
-                message
+        sendEmail(
+                email,
+                "Reset your PaisaTrack password",
+                body
         );
+    }
+
+    // ==========================================
+    // RESEND EMAIL API
+    // ==========================================
+
+    private void sendEmail(
+            String recipient,
+            String subject,
+            String text
+    ) {
+
+        Map<String, Object> requestBody =
+                Map.of(
+                        "from",
+                        senderEmail,
+                        "to",
+                        List.of(recipient),
+                        "subject",
+                        subject,
+                        "text",
+                        text
+                );
+
+        try {
+
+            webClientBuilder
+                    .baseUrl(
+                            "https://api.resend.com"
+                    )
+                    .build()
+                    .post()
+                    .uri(
+                            "/emails"
+                    )
+                    .contentType(
+                            MediaType.APPLICATION_JSON
+                    )
+                    .header(
+                            "Authorization",
+                            "Bearer " + resendApiKey
+                    )
+                    .bodyValue(
+                            requestBody
+                    )
+                    .retrieve()
+                    .toBodilessEntity()
+                    .block();
+
+        } catch (Exception exception) {
+
+            throw new RuntimeException(
+                    "Failed to send email through Resend: "
+                            + exception.getMessage(),
+                    exception
+            );
+        }
     }
 }
