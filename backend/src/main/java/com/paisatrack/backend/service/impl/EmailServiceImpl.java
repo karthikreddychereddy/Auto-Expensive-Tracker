@@ -18,15 +18,14 @@ public class EmailServiceImpl implements EmailService {
 
     private final WebClient.Builder webClientBuilder;
 
-    @Value("${resend.api.key}")
-    private String resendApiKey;
+    @Value("${brevo.api.key}")
+    private String brevoApiKey;
 
-    @Value("${resend.from-email}")
+    @Value("${brevo.from-email}")
     private String senderEmail;
 
-    // ==========================================
-    // EMAIL VERIFICATION OTP
-    // ==========================================
+    @Value("${brevo.from-name:PaisaTrack}")
+    private String senderName;
 
     @Override
     public void sendVerificationOtp(
@@ -36,8 +35,7 @@ public class EmailServiceImpl implements EmailService {
     ) {
 
         String displayName =
-                firstName != null &&
-                !firstName.isBlank()
+                firstName != null && !firstName.isBlank()
                         ? firstName
                         : "User";
 
@@ -73,10 +71,6 @@ public class EmailServiceImpl implements EmailService {
         );
     }
 
-    // ==========================================
-    // PASSWORD RESET OTP
-    // ==========================================
-
     @Override
     public void sendPasswordResetOtp(
             String email,
@@ -85,8 +79,7 @@ public class EmailServiceImpl implements EmailService {
     ) {
 
         String displayName =
-                firstName != null &&
-                !firstName.isBlank()
+                firstName != null && !firstName.isBlank()
                         ? firstName
                         : "User";
 
@@ -122,10 +115,6 @@ public class EmailServiceImpl implements EmailService {
         );
     }
 
-    // ==========================================
-    // RESEND EMAIL API
-    // ==========================================
-
     private void sendEmail(
             String recipient,
             String subject,
@@ -134,13 +123,23 @@ public class EmailServiceImpl implements EmailService {
 
         Map<String, Object> requestBody =
                 Map.of(
-                        "from",
-                        senderEmail,
+                        "sender",
+                        Map.of(
+                                "name",
+                                senderName,
+                                "email",
+                                senderEmail
+                        ),
                         "to",
-                        List.of(recipient),
+                        List.of(
+                                Map.of(
+                                        "email",
+                                        recipient
+                                )
+                        ),
                         "subject",
                         subject,
-                        "text",
+                        "textContent",
                         text
                 );
 
@@ -148,19 +147,19 @@ public class EmailServiceImpl implements EmailService {
 
             webClientBuilder
                     .baseUrl(
-                            "https://api.resend.com"
+                            "https://api.brevo.com"
                     )
                     .build()
                     .post()
                     .uri(
-                            "/emails"
+                            "/v3/smtp/email"
                     )
                     .contentType(
                             MediaType.APPLICATION_JSON
                     )
                     .header(
-                            "Authorization",
-                            "Bearer " + resendApiKey
+                            "api-key",
+                            brevoApiKey
                     )
                     .bodyValue(
                             requestBody
@@ -172,7 +171,7 @@ public class EmailServiceImpl implements EmailService {
         } catch (Exception exception) {
 
             throw new RuntimeException(
-                    "Failed to send email through Resend: "
+                    "Failed to send email through Brevo: "
                             + exception.getMessage(),
                     exception
             );
