@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
 
 import java.util.List;
 import java.util.Map;
@@ -27,6 +28,10 @@ public class EmailServiceImpl implements EmailService {
     @Value("${brevo.from-name:PaisaTrack}")
     private String senderName;
 
+    // ==========================================
+    // EMAIL VERIFICATION OTP
+    // ==========================================
+
     @Override
     public void sendVerificationOtp(
             String email,
@@ -35,7 +40,8 @@ public class EmailServiceImpl implements EmailService {
     ) {
 
         String displayName =
-                firstName != null && !firstName.isBlank()
+                firstName != null &&
+                !firstName.isBlank()
                         ? firstName
                         : "User";
 
@@ -71,6 +77,10 @@ public class EmailServiceImpl implements EmailService {
         );
     }
 
+    // ==========================================
+    // PASSWORD RESET OTP
+    // ==========================================
+
     @Override
     public void sendPasswordResetOtp(
             String email,
@@ -79,7 +89,8 @@ public class EmailServiceImpl implements EmailService {
     ) {
 
         String displayName =
-                firstName != null && !firstName.isBlank()
+                firstName != null &&
+                !firstName.isBlank()
                         ? firstName
                         : "User";
 
@@ -114,6 +125,10 @@ public class EmailServiceImpl implements EmailService {
                 body
         );
     }
+
+    // ==========================================
+    // BREVO EMAIL API
+    // ==========================================
 
     private void sendEmail(
             String recipient,
@@ -161,6 +176,10 @@ public class EmailServiceImpl implements EmailService {
                             "api-key",
                             brevoApiKey
                     )
+                    .header(
+                            "accept",
+                            "application/json"
+                    )
                     .bodyValue(
                             requestBody
                     )
@@ -168,7 +187,44 @@ public class EmailServiceImpl implements EmailService {
                     .toBodilessEntity()
                     .block();
 
+        } catch (WebClientResponseException exception) {
+
+            String responseBody =
+                    exception.getResponseBodyAsString();
+
+            System.err.println(
+                    "========== BREVO EMAIL ERROR =========="
+            );
+
+            System.err.println(
+                    "Brevo HTTP Status: "
+                            + exception.getStatusCode()
+            );
+
+            System.err.println(
+                    "Brevo Response Body: "
+                            + responseBody
+            );
+
+            System.err.println(
+                    "======================================="
+            );
+
+            throw new RuntimeException(
+                    "Failed to send email through Brevo. "
+                            + "Status: "
+                            + exception.getStatusCode()
+                            + ", Response: "
+                            + responseBody,
+                    exception
+            );
+
         } catch (Exception exception) {
+
+            System.err.println(
+                    "Unexpected Brevo email error: "
+                            + exception.getMessage()
+            );
 
             throw new RuntimeException(
                     "Failed to send email through Brevo: "
